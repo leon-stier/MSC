@@ -1,5 +1,6 @@
 ﻿#include "MSC_CharacterPlayer.h"
 
+#include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -81,6 +82,7 @@ void AMSC_CharacterPlayer::DoJumpEnd()
 {
 	StopJumping();
 }
+
 
 void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

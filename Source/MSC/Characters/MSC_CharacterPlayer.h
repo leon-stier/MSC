@@ -54,6 +54,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* MouseLookAction;
 	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* HitAction;
+	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	/** Called for movement input */

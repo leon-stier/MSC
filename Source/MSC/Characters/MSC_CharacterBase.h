@@ -16,6 +16,8 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
+	
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly);
 	TObjectPtr<class UMSC_AbilitySystemComponent> MSC_AbilitySystemComponent;
 	
