@@ -4,6 +4,8 @@
 #include "AbilitySystemInterface.h"
 #include "MSC_CharacterBase.generated.h"
 
+class UGameplayAbility;
+
 UCLASS(Abstract)
 class MSC_API AMSC_CharacterBase : public ACharacter, public IAbilitySystemInterface
 {
@@ -16,7 +18,9 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
-	
+	/* Default Abilities */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player|GAS", meta = (DisplayName = "Default Abilities", Description = "Default abilities granted to the character at spawn."))
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly);
 	TObjectPtr<class UMSC_AbilitySystemComponent> MSC_AbilitySystemComponent;

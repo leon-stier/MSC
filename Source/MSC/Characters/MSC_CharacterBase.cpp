@@ -17,6 +17,12 @@ void AMSC_CharacterBase::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("Trying to access AbilitySystemComponent. %hhd"), MSC_AbilitySystemComponent == nullptr);
 
 	MSC_AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	
+	for (const TSubclassOf<UGameplayAbility>& AbilityClass : DefaultAbilities)
+	{
+		if (!AbilityClass) continue;
+		MSC_AbilitySystemComponent->GiveAbility(AbilityClass);
+	}
 }
 
 UAbilitySystemComponent* AMSC_CharacterBase::GetAbilitySystemComponent() const
