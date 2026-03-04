@@ -1,32 +1,34 @@
 ﻿#include "MSC_CharacterPlayer.h"
 
-#include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Engine/OverlapResult.h"
 
 
 AMSC_CharacterPlayer::AMSC_CharacterPlayer()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	// GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
 	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->MaxWalkSpeed = 400.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
@@ -41,6 +43,14 @@ AMSC_CharacterPlayer::AMSC_CharacterPlayer()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	
+}
+
+void AMSC_CharacterPlayer::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	UpdateLockOnRotation(DeltaSeconds);
 }
 
 void AMSC_CharacterPlayer::DoMove(float Right, float Forward)
@@ -83,6 +93,79 @@ void AMSC_CharacterPlayer::DoJumpEnd()
 	StopJumping();
 }
 
+void AMSC_CharacterPlayer::DoLockTarget()
+{
+	if (HitTarget)
+	{
+		HitTarget = nullptr;
+		return;
+	}
+
+	const FVector Start = GetActorLocation();
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	
+	DrawDebugSphere(GetWorld(), Start, 700.0f, 16, FColor::Green, false, 2.f);
+
+	const bool bHit = GetWorld()->OverlapMultiByObjectType(
+		OverlapResults,
+		Start,
+		FQuat::Identity,
+		FCollisionObjectQueryParams(ECC_Pawn),
+		FCollisionShape::MakeSphere(700.0f),
+		QueryParams
+	);
+	
+	if (!bHit) return;
+	
+	AActor* BestTarget = nullptr;
+	float BestScore = -1.f;
+
+	const FVector Forward = GetActorForwardVector();
+
+	for (const FOverlapResult& Result : OverlapResults)
+	{
+		AActor* Candidate = Result.GetActor();
+		if (!Candidate) continue;
+
+		FVector Direction = (Candidate->GetActorLocation() - Start).GetSafeNormal();
+		const float Dot = FVector::DotProduct(Forward, Direction);
+
+		// Higher dot = more in front of player
+		if (Dot > BestScore)
+		{
+			BestScore = Dot;
+			BestTarget = Candidate;
+		}
+	}
+
+	HitTarget = BestTarget;
+}
+
+void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
+{
+	if (!HitTarget || !Controller) return;
+	
+	const FVector Start = GetActorLocation();
+	const FVector TargetLocation = HitTarget->GetActorLocation();
+
+	FVector Direction = (TargetLocation - Start);
+	Direction.Z = 0.f; // Keep rotation horizontal
+
+	const FRotator TargetRotation = Direction.Rotation();
+
+	// Optional: Smooth rotation
+	const FRotator NewRotation = FMath::RInterpTo(
+		Controller->GetControlRotation(),
+		TargetRotation,
+		DeltaTime,
+		10.f // Rotation speed
+	);
+
+	Controller->SetControlRotation(TargetRotation);
+}
+
 
 void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -99,6 +182,7 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::Look);
+		EnhancedInputComponent->BindAction(LockTargetAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoLockTarget);
 	}
 	else
 	{

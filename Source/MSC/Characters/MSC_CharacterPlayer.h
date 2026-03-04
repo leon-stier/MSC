@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "MSC_CharacterBase.h"
+#include "MSC_CharacterEnemy.h"
 #include "MSC_CharacterPlayer.generated.h"
 
 class USpringArmComponent;
@@ -15,6 +16,8 @@ class MSC_API AMSC_CharacterPlayer : public AMSC_CharacterBase
 
 public:
 	AMSC_CharacterPlayer();
+	
+	virtual void Tick(float DeltaSeconds) override;
 	/** Handles move inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
@@ -31,11 +34,20 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 	
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoLockTarget();
+	
+	UFUNCTION()
+	void UpdateLockOnRotation(float DetlaTime);
+	
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
+	UPROPERTY()
+	float TargetLockDistance = 500.0f;
 	
 protected:
 	/** Jump Input Action */
@@ -57,6 +69,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* HitAction;
 	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* LockTargetAction;
+	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	/** Called for movement input */
@@ -73,4 +88,7 @@ private:
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+	
+	UPROPERTY()
+	AActor* HitTarget;
 };
