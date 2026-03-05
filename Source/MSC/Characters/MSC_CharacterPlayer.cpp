@@ -106,7 +106,7 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
 	
-	DrawDebugSphere(GetWorld(), Start, 700.0f, 16, FColor::Green, false, 2.f);
+	// DrawDebugSphere(GetWorld(), Start, 700.0f, 16, FColor::Green, false, 2.f);
 
 	const bool bHit = GetWorld()->OverlapMultiByObjectType(
 		OverlapResults,
