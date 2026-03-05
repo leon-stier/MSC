@@ -28,7 +28,9 @@ void UMSC_HitAbility::ActivateAbility(
 			// Using built-in WaitForEvent system in GAS
 			UAbilityTask_PlayMontageAndWait* Task = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage);
 			auto* EventTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(FName("Event.Ability.Trigger")));
-			Task->OnCancelled.AddDynamic(this, &UGameplayAbility::EndAbility);
+			Task->OnCancelled.
+			
+			AddDynamic(this, &UGameplayAbility::EndAbility);
 			Task->OnInterrupted.AddDynamic(this, &UGameplayAbility::EndAbility);
 			Task->OnCompleted.AddDynamic(this, &UGameplayAbility::EndAbility);
 			Task->ReadyForActivation();
