@@ -35,6 +35,9 @@ public:
 	virtual void DoJumpEnd();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoPunch();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLockTarget();
 	
 	UFUNCTION()
@@ -45,6 +48,9 @@ public:
 
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayAbility> PunchAbility;
 	
 	UPROPERTY()
 	float TargetLockDistance = 500.0f;
@@ -67,7 +73,7 @@ protected:
 	UInputAction* MouseLookAction;
 	
 	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* HitAction;
+	UInputAction* PunchAction;
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* LockTargetAction;

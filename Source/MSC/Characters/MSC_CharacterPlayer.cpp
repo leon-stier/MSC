@@ -6,6 +6,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "Engine/OverlapResult.h"
+#include "AbilitySystemComponent.h"
+#include "MSC/GAS/MSC_AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 
 
 AMSC_CharacterPlayer::AMSC_CharacterPlayer()
@@ -91,6 +94,15 @@ void AMSC_CharacterPlayer::DoJumpStart()
 void AMSC_CharacterPlayer::DoJumpEnd()
 {
 	StopJumping();
+}
+
+void AMSC_CharacterPlayer::DoPunch()
+{
+	if (PunchAbility && MSC_AbilitySystemComponent)
+	{
+		MSC_AbilitySystemComponent->TryActivateAbilityByClass(PunchAbility);
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(FName("Event.ContinueCombo.Input")), FGameplayEventData());
+	}
 }
 
 void AMSC_CharacterPlayer::DoLockTarget()
@@ -183,6 +195,9 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::Look);
 		EnhancedInputComponent->BindAction(LockTargetAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoLockTarget);
+		
+		// Punch
+		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoPunch);
 	}
 	else
 	{
