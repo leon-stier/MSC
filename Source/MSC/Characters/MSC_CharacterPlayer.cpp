@@ -100,19 +100,28 @@ void AMSC_CharacterPlayer::DoPunch()
 {
 	if (PunchAbility && MSC_AbilitySystemComponent)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Punch!"));
 		MSC_AbilitySystemComponent->TryActivateAbilityByClass(PunchAbility);
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(FName("Event.ContinueCombo.Input")), FGameplayEventData());
 	}
 }
 
-void AMSC_CharacterPlayer::DoBlock()
+void AMSC_CharacterPlayer::DoBlockStart()
 {
-	MSC_AbilitySystemComponent->TryActivateAbilityByClass(BlockAbility);
+	UE_LOG(LogTemp, Log, TEXT("Blocking!"));
+	if (MSC_AbilitySystemComponent && BlockAbility)
+	{
+		MSC_AbilitySystemComponent->TryActivateAbilityByClass(BlockAbility);
+	}
 }
 
-void AMSC_CharacterPlayer::ReleaseBlock()
+void AMSC_CharacterPlayer::DoBlockEnd()
 {
+	if (MSC_AbilitySystemComponent && BlockAbility)
+	{
+		FGameplayTagContainer AbilityTags;
+		AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Block")));
+		MSC_AbilitySystemComponent->CancelAbilities(&AbilityTags);
+	}
 	
 }
 
@@ -209,7 +218,10 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		
 		// Punch
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoPunch);
-		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoBlock);
+		
+		// Block
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &AMSC_CharacterPlayer::DoBlockStart);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &AMSC_CharacterPlayer::DoBlockEnd);
 		
 	}
 	else

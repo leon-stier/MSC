@@ -7,20 +7,21 @@ AMSC_CharacterBase::AMSC_CharacterBase()
 {
 	MSC_AbilitySystemComponent = CreateDefaultSubobject<UMSC_AbilitySystemComponent>(TEXT("ASC"));
 	HealthSet = CreateDefaultSubobject<UMSC_HealthAttributeSet>(TEXT("HealthSet"));
-	
-	UE_LOG(LogTemp, Warning, TEXT("Base Constructor finished %hhd"), MSC_AbilitySystemComponent == nullptr);
 }
 
 void AMSC_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("Trying to access AbilitySystemComponent. %hhd"), MSC_AbilitySystemComponent == nullptr);
+	UE_LOG(LogTemp, Warning, TEXT("Processing %d abilities in %s"), DefaultAbilities.Num(), *GetNameSafe(this));
 
 	MSC_AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	
 	for (const TSubclassOf<UGameplayAbility>& AbilityClass : DefaultAbilities)
 	{
-		if (!AbilityClass) continue;
+		if (!AbilityClass)
+		{
+			continue;
+		}
 		MSC_AbilitySystemComponent->GiveAbility(AbilityClass);
 	}
 }

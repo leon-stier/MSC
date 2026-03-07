@@ -38,10 +38,10 @@ public:
 	virtual void DoPunch();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void DoBlock();
+	virtual void DoBlockStart();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
-	virtual void ReleaseBlock();
+	virtual void DoBlockEnd();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLockTarget();
