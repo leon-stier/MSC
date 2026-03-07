@@ -118,7 +118,7 @@ void AMSC_CharacterPlayer::DoBlockEnd()
 	if (MSC_AbilitySystemComponent && BlockAbility)
 	{
 		FGameplayTagContainer AbilityTags;
-		AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Block")));
+		AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Id.Block")));
 		MSC_AbilitySystemComponent->CancelAbilities(&AbilityTags);
 	}
 	
