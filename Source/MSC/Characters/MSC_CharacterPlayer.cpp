@@ -100,9 +100,20 @@ void AMSC_CharacterPlayer::DoPunch()
 {
 	if (PunchAbility && MSC_AbilitySystemComponent)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Punch!"));
 		MSC_AbilitySystemComponent->TryActivateAbilityByClass(PunchAbility);
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(FName("Event.ContinueCombo.Input")), FGameplayEventData());
 	}
+}
+
+void AMSC_CharacterPlayer::DoBlock()
+{
+	MSC_AbilitySystemComponent->TryActivateAbilityByClass(BlockAbility);
+}
+
+void AMSC_CharacterPlayer::ReleaseBlock()
+{
+	
 }
 
 void AMSC_CharacterPlayer::DoLockTarget()
@@ -198,6 +209,8 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		
 		// Punch
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoPunch);
+		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoBlock);
+		
 	}
 	else
 	{

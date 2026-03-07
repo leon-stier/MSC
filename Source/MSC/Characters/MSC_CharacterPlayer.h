@@ -38,6 +38,12 @@ public:
 	virtual void DoPunch();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoBlock();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void ReleaseBlock();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLockTarget();
 	
 	UFUNCTION()
@@ -51,6 +57,9 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<UGameplayAbility> PunchAbility;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayAbility> BlockAbility;
 	
 	UPROPERTY()
 	float TargetLockDistance = 500.0f;
@@ -74,6 +83,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* PunchAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* BlockAction;
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* LockTargetAction;
