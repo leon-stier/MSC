@@ -4,6 +4,7 @@
 #include "AbilitySystemInterface.h"
 #include "MSC_CharacterBase.generated.h"
 
+struct FOnAttributeChangeData;
 class UGameplayAbility;
 
 UCLASS(Abstract)
@@ -18,6 +19,8 @@ public:
 	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
+	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data) const;
+	
 	/* Default Abilities */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player|GAS", meta = (DisplayName = "Default Abilities", Description = "Default abilities granted to the character at spawn."))
 	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
@@ -27,5 +30,8 @@ public:
 	
 	UPROPERTY()
 	TObjectPtr<class UMSC_HealthAttributeSet> HealthSet;
+	
+	UPROPERTY()
+	TObjectPtr<class UMSC_MovementAttributeSet> MovementSet;
 	
 };
