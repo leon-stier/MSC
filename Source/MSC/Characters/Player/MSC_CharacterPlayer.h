@@ -1,6 +1,5 @@
 ﻿#pragma once
-#include "MSC_CharacterBase.h"
-#include "MSC_CharacterEnemy.h"
+#include "../MSC_CharacterBase.h"
 #include "MSC_CharacterPlayer.generated.h"
 
 class USpringArmComponent;
