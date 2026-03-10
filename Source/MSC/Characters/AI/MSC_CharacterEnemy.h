@@ -9,4 +9,8 @@ class MSC_API AMSC_CharacterEnemy : public AMSC_CharacterBase
 public:
 	AMSC_CharacterEnemy();
 	
+	void DoPunch();
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayAbility> PunchAbility;
 };
