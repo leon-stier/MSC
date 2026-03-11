@@ -44,3 +44,48 @@ struct FStateTreeComboAttackTask : public FStateTreeTaskCommonBase
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 #endif // WITH_EDITOR
 };
+
+/**
+ *  Instance data struct for the Get Player Info task
+ */
+USTRUCT()
+struct FStateTreeGetPlayerInfoInstanceData
+{
+	GENERATED_BODY()
+
+	/** Character that owns this task */
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<ACharacter> Character;
+
+	/** Character that owns this task */
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<ACharacter> TargetPlayerCharacter;
+
+	/** Last known location for the target */
+	UPROPERTY(VisibleAnywhere)
+	FVector TargetPlayerLocation = FVector::ZeroVector;
+
+	/** Distance to the target */
+	UPROPERTY(VisibleAnywhere)
+	float DistanceToTarget = 0.0f;
+};
+
+/**
+ *  StateTree task to get information about the player character
+ */
+USTRUCT(meta=(DisplayName="GetPlayerInfo", Category="Combat"))
+struct FStateTreeGetPlayerInfoTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	/* Ensure we're using the correct instance data struct */
+	using FInstanceDataType = FStateTreeGetPlayerInfoInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	/** Runs while the owning state is active */
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+
+#if WITH_EDITOR
+	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
+#endif // WITH_EDITOR
+};

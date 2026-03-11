@@ -1,4 +1,5 @@
 ﻿#include "MSC_HealthAttributeSet.h"
+#include "GameplayEffectExtension.h"
 
 UMSC_HealthAttributeSet::UMSC_HealthAttributeSet()
 {
@@ -30,5 +31,21 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 		// When max health changes, broadcast OnHealthChanged so that health bars will update
 		const float CurrentHealth = GetHealth();
 		OnHealthChanged.Broadcast(this, CurrentHealth, CurrentHealth);
+	}
+}
+
+void UMSC_HealthAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+	
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		if (Health.GetCurrentValue() <= 0.f)
+		{
+			// Apply dead tag to the ASC
+			Data.Target.AddLooseGameplayTag(
+				FGameplayTag::RequestGameplayTag(FName("State.Dead"))
+			);
+		}
 	}
 }

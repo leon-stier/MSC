@@ -17,7 +17,6 @@ void AMainPlayerController::SetupInputComponent()
 		{
 			for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("YOYOYOYOYOYO"));
 				Subsystem->AddMappingContext(CurrentContext, 0);
 			}
 

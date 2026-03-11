@@ -16,6 +16,8 @@ public:
 	
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	
+	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS_BASIC(UMSC_HealthAttributeSet, Health);

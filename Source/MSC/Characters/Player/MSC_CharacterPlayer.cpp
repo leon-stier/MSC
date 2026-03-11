@@ -106,7 +106,6 @@ void AMSC_CharacterPlayer::DoPunch()
 
 void AMSC_CharacterPlayer::DoBlockStart()
 {
-	UE_LOG(LogTemp, Log, TEXT("Blocking!"));
 	if (MSC_AbilitySystemComponent && BlockAbility)
 	{
 		MSC_AbilitySystemComponent->TryActivateAbilityByClass(BlockAbility);
