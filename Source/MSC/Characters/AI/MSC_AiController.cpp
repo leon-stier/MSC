@@ -6,7 +6,7 @@ AMSC_AIController::AMSC_AIController()
 	StateTreeAI = CreateDefaultSubobject<UStateTreeAIComponent>(TEXT("StateTreeAI"));
 	check(StateTreeAI)
 	
-	bStartAILogicOnPossess = true;
-	
+	// We need to grant the abilities first
+	bStartAILogicOnPossess = false;
 	bAttachToPawn = true;
 }

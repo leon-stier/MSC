@@ -40,4 +40,9 @@ void AMSC_CharacterBase::OnMoveSpeedChanged(const FOnAttributeChangeData& Data) 
 {
 	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
 }
+
+bool AMSC_CharacterBase::IsDead() const
+{
+	return MSC_AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("State.Dead")));
+}
 	

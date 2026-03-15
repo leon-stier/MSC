@@ -21,6 +21,8 @@ public:
 	
 	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data) const;
 	
+	bool IsDead() const;
+	
 	/* Default Abilities */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player|GAS", meta = (DisplayName = "Default Abilities", Description = "Default abilities granted to the character at spawn."))
 	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
