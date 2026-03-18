@@ -5,6 +5,8 @@
 #include "StateTreeExecutionContext.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeAsyncExecutionContext.h"
+#include "Abilities/GameplayAbility.h"
+#include "MSC/GAS/MSC_AbilitySystemComponent.h"
 
 EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
@@ -13,7 +15,13 @@ EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionCon
 	
 	if (!Enemy) return EStateTreeRunStatus::Failed;
 	
-	Enemy->DoPunch();
+	bool Succeeded = false;
+	
+	if (Enemy->PunchAbility && Enemy->MSC_AbilitySystemComponent)
+	{
+		Succeeded = Enemy->MSC_AbilitySystemComponent->TryActivateAbilityByClass(Enemy->PunchAbility);
+	}
+	if (!Succeeded) return EStateTreeRunStatus::Failed;
 	
 	InstanceData.Character->OnAttackCompletedNative.BindLambda(
 			[WeakContext = Context.MakeWeakExecutionContext()]()

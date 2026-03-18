@@ -1,4 +1,6 @@
 ﻿#include "MSC_HealthAttributeSet.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
 
 UMSC_HealthAttributeSet::UMSC_HealthAttributeSet()
@@ -40,6 +42,22 @@ void UMSC_HealthAttributeSet::PostGameplayEffectExecute(const struct FGameplayEf
 	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
+		if (Data.EffectSpec.Def->GetAssetTags().HasTag(FGameplayTag::RequestGameplayTag(FName("Effects.HitReaction"))))
+		{
+			AActor* Instigator = Cast<AActor>(
+				Data.EffectSpec.GetEffectContext().GetInstigator());
+			AActor* Target = Data.Target.GetAvatarActor();
+
+			FGameplayEventData EventData;
+			EventData.Instigator = Instigator;
+			EventData.Target = Target;
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
+				Target,
+				FGameplayTag::RequestGameplayTag(FName("Event.Trigger.HitReaction")),
+				EventData
+			);
+		}
 		if (Health.GetCurrentValue() <= 0.f)
 		{
 			// Apply dead tag to the ASC
