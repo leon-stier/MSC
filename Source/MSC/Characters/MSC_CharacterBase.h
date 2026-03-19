@@ -4,6 +4,7 @@
 #include "AbilitySystemInterface.h"
 #include "MSC_CharacterBase.generated.h"
 
+struct FGameplayTag;
 struct FOnAttributeChangeData;
 class UGameplayAbility;
 
@@ -20,6 +21,8 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	
 	void OnMoveSpeedChanged(const FOnAttributeChangeData& Data) const;
+	
+	void OnDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount) const;
 	
 	bool IsDead() const;
 	

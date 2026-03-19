@@ -27,6 +27,12 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 	
 	if (Attribute == GetHealthAttribute())
 	{
+		if (NewValue <= 0.0f)
+		{
+			FGameplayTagContainer DeathAbilityTagContainer;
+			DeathAbilityTagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Id.Die")));
+			GetOwningAbilitySystemComponent()->TryActivateAbilitiesByTag(DeathAbilityTagContainer);
+		}
 		OnHealthChanged.Broadcast(this, OldValue, NewValue);
 	} else if (Attribute == GetMaxHealthAttribute())
 	{
@@ -56,13 +62,6 @@ void UMSC_HealthAttributeSet::PostGameplayEffectExecute(const struct FGameplayEf
 				Target,
 				FGameplayTag::RequestGameplayTag(FName("Event.Trigger.HitReaction")),
 				EventData
-			);
-		}
-		if (Health.GetCurrentValue() <= 0.f)
-		{
-			// Apply dead tag to the ASC
-			Data.Target.AddLooseGameplayTag(
-				FGameplayTag::RequestGameplayTag(FName("State.Dead"))
 			);
 		}
 	}
