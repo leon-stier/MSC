@@ -2,6 +2,7 @@
 #include "../MSC_CharacterBase.h"
 #include "MSC_CharacterPlayer.generated.h"
 
+class UInputMappingContext;
 class AMSC_CharacterEnemy;
 class USpringArmComponent;
 class UCameraComponent;
@@ -115,5 +116,11 @@ private:
 	
 	UPROPERTY()
 	AMSC_CharacterEnemy* HitTarget;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputMappingContext* LookMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	int32 LookMappingContextPriority = 0;
 	
 };

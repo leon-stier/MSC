@@ -9,6 +9,8 @@
 #include "AbilitySystemComponent.h"
 #include "MSC/GAS/MSC_AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "EnhancedInputSubsystems.h"
+#include "BaseGizmos/GizmoElementShared.h"
 #include "MSC/Characters/AI/MSC_CharacterEnemy.h"
 
 
@@ -177,6 +179,13 @@ void AMSC_CharacterPlayer::DoLockTarget()
 			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
 			EGameplayTagEventType::NewOrRemoved)
 			.AddUObject(this, &AMSC_CharacterPlayer::OnTargetDied);
+	
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
+		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+			GetLocalViewingPlayerController()->GetLocalPlayer()))
+	{
+		Subsystem->RemoveMappingContext(LookMappingContext);
+	}
 }
 
 void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
@@ -265,9 +274,17 @@ void AMSC_CharacterPlayer::UnlockTarget()
 			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
 			EGameplayTagEventType::NewOrRemoved)
 			.Remove(DeadTagEventHandle);
+		
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
+		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+			GetLocalViewingPlayerController()->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(LookMappingContext, LookMappingContextPriority);
+		}
+		
+		HitTarget = nullptr;
 	}
 	
-	HitTarget = nullptr;
 }
 
 
