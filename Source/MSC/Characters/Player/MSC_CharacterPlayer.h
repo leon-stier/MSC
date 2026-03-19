@@ -2,6 +2,7 @@
 #include "../MSC_CharacterBase.h"
 #include "MSC_CharacterPlayer.generated.h"
 
+class AMSC_CharacterEnemy;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputAction;
@@ -98,6 +99,12 @@ protected:
 	void Look(const FInputActionValue& Value);
 	
 private:
+	void OnTargetDied(const FGameplayTag Tag, int32 NewCount);
+	
+	void UnlockTarget();
+	
+	FDelegateHandle DeadTagEventHandle;
+	
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -107,5 +114,6 @@ private:
 	UCameraComponent* FollowCamera;
 	
 	UPROPERTY()
-	AActor* HitTarget;
+	AMSC_CharacterEnemy* HitTarget;
+	
 };

@@ -9,6 +9,7 @@
 #include "AbilitySystemComponent.h"
 #include "MSC/GAS/MSC_AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "MSC/Characters/AI/MSC_CharacterEnemy.h"
 
 
 AMSC_CharacterPlayer::AMSC_CharacterPlayer()
@@ -127,7 +128,7 @@ void AMSC_CharacterPlayer::DoLockTarget()
 {
 	if (HitTarget)
 	{
-		HitTarget = nullptr;
+		UnlockTarget();
 		return;
 	}
 
@@ -149,14 +150,14 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	
 	if (!bHit) return;
 	
-	AActor* BestTarget = nullptr;
+	AMSC_CharacterEnemy* BestTarget = nullptr;
 	float BestScore = -1.f;
 
 	const FVector Forward = GetActorForwardVector();
 
 	for (const FOverlapResult& Result : OverlapResults)
 	{
-		AActor* Candidate = Result.GetActor();
+		AMSC_CharacterEnemy* Candidate = Cast<AMSC_CharacterEnemy>(Result.GetActor());
 		if (!Candidate) continue;
 
 		FVector Direction = (Candidate->GetActorLocation() - Start).GetSafeNormal();
@@ -171,6 +172,11 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	}
 
 	HitTarget = BestTarget;
+	
+	DeadTagEventHandle = HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
+			EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AMSC_CharacterPlayer::OnTargetDied);
 }
 
 void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
@@ -244,6 +250,24 @@ void AMSC_CharacterPlayer::Look(const FInputActionValue& Value)
 
 	// route the input
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
+}
+
+void AMSC_CharacterPlayer::OnTargetDied(const FGameplayTag Tag, int32 NewCount)
+{
+	UnlockTarget();
+}
+
+void AMSC_CharacterPlayer::UnlockTarget()
+{
+	if (HitTarget)
+	{
+		HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
+			EGameplayTagEventType::NewOrRemoved)
+			.Remove(DeadTagEventHandle);
+	}
+	
+	HitTarget = nullptr;
 }
 
 
