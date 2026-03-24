@@ -10,3 +10,8 @@ AMSC_AIController::AMSC_AIController()
 	bStartAILogicOnPossess = false;
 	bAttachToPawn = true;
 }
+
+void AMSC_AIController::BeginPlay()
+{
+	Super::BeginPlay();
+}

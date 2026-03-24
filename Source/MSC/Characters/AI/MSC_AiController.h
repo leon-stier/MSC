@@ -14,4 +14,6 @@ class MSC_API AMSC_AIController : public AAIController
 	UStateTreeAIComponent* StateTreeAI;
 public:
 	AMSC_AIController();
+	
+	virtual void BeginPlay() override;
 };

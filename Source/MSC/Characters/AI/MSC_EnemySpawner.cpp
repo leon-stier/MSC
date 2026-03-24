@@ -29,10 +29,7 @@ void AMSC_EnemySpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (bShouldSpawnEnemiesImmediately)
-	{
-		GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &AMSC_EnemySpawner::SpawnEnemy, InitialSpawnDelay);
-	}
+	GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &AMSC_EnemySpawner::SpawnEnemy, InitialSpawnDelay);
 }
 
 void AMSC_EnemySpawner::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -51,16 +48,18 @@ void AMSC_EnemySpawner::SpawnEnemy()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		AMSC_CharacterEnemy* SpawnedEnemy = GetWorld()->SpawnActor<AMSC_CharacterEnemy>(EnemyClass, SpawnCapsule->GetComponentTransform(), SpawnParams);
+		for (int i = 0; i < SpawnCount; i++) {
+			AMSC_CharacterEnemy* SpawnedEnemy = GetWorld()->SpawnActor<AMSC_CharacterEnemy>(EnemyClass, SpawnCapsule->GetComponentTransform(), SpawnParams);
 
-		// was the enemy successfully created?
-		if (SpawnedEnemy && SpawnedEnemy->GetAbilitySystemComponent())
-		{
-			// Listen for the dead tag on each enemy
-			SpawnedEnemy->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
-				FGameplayTag::RequestGameplayTag(FName("Combat.Dead")),
-				EGameplayTagEventType::NewOrRemoved)
-				.AddUObject(this, &AMSC_EnemySpawner::OnDeadTagChanged);
+			// was the enemy successfully created?
+			if (SpawnedEnemy && SpawnedEnemy->GetAbilitySystemComponent())
+			{
+				// Listen for the dead tag on each enemy
+				SpawnedEnemy->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
+					FGameplayTag::RequestGameplayTag(FName("Combat.Dead")),
+					EGameplayTagEventType::NewOrRemoved)
+					.AddUObject(this, &AMSC_EnemySpawner::OnDeadTagChanged);
+			}
 		}
 	}
 }
