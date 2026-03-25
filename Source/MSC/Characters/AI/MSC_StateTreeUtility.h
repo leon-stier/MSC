@@ -5,9 +5,12 @@
 
 #include "MSC_StateTreeUtility.generated.h"
 
+class AMSC_CharacterPlayer;
 class ACharacter;
 class AAIController;
 class AMSC_CharacterEnemy;
+
+
 
 
 /**
@@ -21,7 +24,12 @@ struct FStateTreeAttackInstanceData
 	/** Character that will perform the attack */
 	UPROPERTY(EditAnywhere, Category = Context)
 	TObjectPtr<AMSC_CharacterEnemy> Character;
+
+	/** Tracks whether this task currently owns an attack token */
+	UPROPERTY(Transient)
+	bool bHasAttackToken = false;
 };
+
 
 /**
  *  StateTree task to perform a combo attack

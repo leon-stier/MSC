@@ -50,6 +50,15 @@ public:
 	UFUNCTION()
 	void UpdateLockOnRotation(float DetlaTime);
 	
+	UFUNCTION()
+	bool RequestAttackToken();
+	
+	UFUNCTION()
+	void ReturnAttackToken();
+	
+	UPROPERTY()
+	int MaxAllowedAttackers = 1;
+	
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
@@ -122,5 +131,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	int32 LookMappingContextPriority = 0;
+	
+	int CurrentAttackerTokens = MaxAllowedAttackers;
 	
 };

@@ -211,6 +211,27 @@ void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
 	Controller->SetControlRotation(TargetRotation);
 }
 
+bool AMSC_CharacterPlayer::RequestAttackToken()
+{	
+	UE_LOG(LogTemp, Warning, TEXT("Requested Attack Token. We got %d"), CurrentAttackerTokens)
+	if (CurrentAttackerTokens > 0)
+	{
+		--CurrentAttackerTokens;
+		return true;
+	}
+	return false;
+}
+
+void AMSC_CharacterPlayer::ReturnAttackToken()
+{
+	CurrentAttackerTokens++;
+	if (CurrentAttackerTokens > MaxAllowedAttackers)
+	{
+		CurrentAttackerTokens = MaxAllowedAttackers;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Token returned. We got %d"), CurrentAttackerTokens)
+}
+
 
 void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
