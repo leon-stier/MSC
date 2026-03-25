@@ -13,45 +13,242 @@ class AMSC_CharacterEnemy;
 
 
 
+UENUM()
+enum class EStateTreeAttackRunPhase : uint8
+{
+	Rush,
+	WaitAttackDone
+};
+
 /**
- *  Instance data struct for the Combat StateTree tasks
+ *  Instance data for En Garde spacing around the player
  */
 USTRUCT()
-struct FStateTreeAttackInstanceData
+struct FStateTreeEnGardeInstanceData
 {
 	GENERATED_BODY()
 
-	/** Character that will perform the attack */
 	UPROPERTY(EditAnywhere, Category = Context)
 	TObjectPtr<AMSC_CharacterEnemy> Character;
 
-	/** Tracks whether this task currently owns an attack token */
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float EnGardeDistance = 340.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float DistanceTolerance = 90.0f;
+};
+
+/**
+ *  Keeps AI near the player on a loose ring outside attack range
+ */
+USTRUCT(meta=(DisplayName="En Garde", Category="Combat"))
+struct FStateTreeEnGardeTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeEnGardeInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+};
+
+/**
+ *  Instance data for rush + attack execution
+ */
+USTRUCT()
+struct FStateTreeAttackRunInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float AttackDistance = 150.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float AttackDistanceTolerance = 70.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float RushSpeed = 650.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	bool bAcquireTokenOnEnter = true;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	bool bKeepTokenOnSuccess = false;
+
+	UPROPERTY(Transient)
+	float CachedMoveSpeed = 0.0f;
+
 	UPROPERTY(Transient)
 	bool bHasAttackToken = false;
+
+	UPROPERTY(Transient)
+	bool bAttackDelegateBound = false;
+
+	UPROPERTY(Transient)
+	EStateTreeAttackRunPhase Phase = EStateTreeAttackRunPhase::Rush;
+};
+
+/**
+ *  Acquires attack token, rushes into range, executes attack, then completes
+ */
+USTRUCT(meta=(DisplayName="Attack Run", Category="Combat"))
+struct FStateTreeAttackRunTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeAttackRunInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+};
+
+USTRUCT()
+struct FStateTreeReleaseEngagedTokenInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+};
+
+/**
+ *  Attach this to Engaged parent state to release token only when Engaged exits.
+ */
+USTRUCT(meta=(DisplayName="Release Engaged Token", Category="Combat"))
+struct FStateTreeReleaseEngagedTokenTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeReleaseEngagedTokenInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+};
+
+/**
+ *  Instance data for retreating back to En Garde after attacking
+ */
+USTRUCT()
+struct FStateTreeRetreatToEnGardeInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float EnGardeDistance = 340.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float DistanceTolerance = 90.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float RetreatSpeed = 280.0f;
+
+	UPROPERTY(Transient)
+	float CachedMoveSpeed = 0.0f;
 };
 
 
 /**
- *  StateTree task to perform a combo attack
+ *  Instance data for reactive blocking in response to player attacks
  */
-USTRUCT(meta=(DisplayName="Combo Attack", Category="Combat"))
-struct FStateTreeComboAttackTask : public FStateTreeTaskCommonBase
+USTRUCT()
+struct FStateTreeReactiveBlockInstanceData
 {
 	GENERATED_BODY()
 
-	/* Ensure we're using the correct instance data struct */
-	using FInstanceDataType = FStateTreeAttackInstanceData;
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float BlockChance = 0.85f;
+
+	UPROPERTY(Transient)
+	bool bBlockAbilityActive = false;
+};
+
+/**
+ *  Activates block ability in response to player attacking
+ */
+USTRUCT(meta=(DisplayName="Reactive Block", Category="Combat"))
+struct FStateTreeReactiveBlockTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeReactiveBlockInstanceData;
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 
-	/** Runs when the owning state is entered */
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-
-	/** Runs when the owning state is ended */
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+};
 
-#if WITH_EDITOR
-	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
-#endif // WITH_EDITOR
+/**
+ *  Condition to check if player is currently attacking
+ */
+USTRUCT()
+struct FStateTreeIsPlayerAttackingConditionInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Context")
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+};
+STATETREE_POD_INSTANCEDATA(FStateTreeIsPlayerAttackingConditionInstanceData);
+
+USTRUCT(DisplayName="Is Player Attacking?", Category="Combat")
+struct FStateTreeIsPlayerAttackingCondition : public FStateTreeConditionCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeIsPlayerAttackingConditionInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
+};
+
+/**
+ *  Condition to check if enemy is NOT currently attacking (opportunity to attack)
+ */
+USTRUCT()
+struct FStateTreeCanEnemyAttackConditionInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Context")
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+};
+STATETREE_POD_INSTANCEDATA(FStateTreeCanEnemyAttackConditionInstanceData);
+
+USTRUCT(DisplayName="Can Enemy Attack?", Category="Combat")
+struct FStateTreeCanEnemyAttackCondition : public FStateTreeConditionCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeCanEnemyAttackConditionInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
+};
+
+USTRUCT(meta=(DisplayName="Retreat To En Garde", Category="Combat"))
+struct FStateTreeRetreatToEnGardeTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeRetreatToEnGardeInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 };
 
 
