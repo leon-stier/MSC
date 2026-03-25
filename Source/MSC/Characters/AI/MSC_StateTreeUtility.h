@@ -74,6 +74,57 @@ struct FStateTreeRequestTokenTask : public FStateTreeTaskCommonBase
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 };
 
+USTRUCT(meta=(DisplayName="Release Token", Category="Combat"))
+struct FStateTreeReleaseTokenTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeTokenInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+};
+
+/**
+ *  Instance data for keeping enemy in close engaged range around player
+ */
+USTRUCT()
+struct FStateTreeMaintainEngageDistanceInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = Context)
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float PreferredDistance = 170.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float DistanceTolerance = 55.0f;
+
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float EngageMoveSpeed = 560.0f;
+
+	UPROPERTY(Transient)
+	float CachedMoveSpeed = 0.0f;
+};
+
+/**
+ *  Keeps enemy near the player while engaged so attack/block loop stays in range
+ */
+USTRUCT(meta=(DisplayName="Maintain Engage Distance", Category="Combat"))
+struct FStateTreeMaintainEngageDistanceTask : public FStateTreeTaskCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreeMaintainEngageDistanceInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+};
+
 /**
  *  Instance data for attack execution
  */
@@ -150,8 +201,14 @@ struct FStateTreeReactiveBlockInstanceData
 	UPROPERTY(EditAnywhere, Category = Parameter)
 	float BlockChance = 0.85f;
 
+	UPROPERTY(EditAnywhere, Category = Parameter)
+	float MaxBlockDuration = 0.7f;
+
 	UPROPERTY(Transient)
 	bool bBlockAbilityActive = false;
+
+	UPROPERTY(Transient)
+	float ElapsedBlockTime = 0.0f;
 };
 
 /**
@@ -261,6 +318,27 @@ struct FStateTreeIsCharacterDeadCondition : public FStateTreeConditionCommonBase
 	
 	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
 	
+};
+
+USTRUCT()
+struct FStateTreePlayerDeadConditionInstanceData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Context")
+	TObjectPtr<AMSC_CharacterEnemy> Character;
+};
+STATETREE_POD_INSTANCEDATA(FStateTreePlayerDeadConditionInstanceData);
+
+USTRUCT(DisplayName="Is Player Dead?", Category="Combat")
+struct FStateTreeIsPlayerDeadCondition : public FStateTreeConditionCommonBase
+{
+	GENERATED_BODY()
+
+	using FInstanceDataType = FStateTreePlayerDeadConditionInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+
+	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
 };
 
 /**
