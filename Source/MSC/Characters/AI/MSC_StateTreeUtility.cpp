@@ -51,139 +51,71 @@ EStateTreeRunStatus FStateTreeEnGardeTask::Tick(FStateTreeExecutionContext& Cont
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FStateTreeAttackRunTask::EnterState(FStateTreeExecutionContext& Context,
+EStateTreeRunStatus FStateTreeRequestTokenTask::EnterState(FStateTreeExecutionContext& Context,
 	const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
-	if (!Enemy || !Enemy->GetCharacterMovement()) return EStateTreeRunStatus::Failed;
-
-	InstanceData.bHasAttackToken = false;
-	if (InstanceData.bAcquireTokenOnEnter)
+	
+	AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(UGameplayStatics::GetPlayerPawn(Enemy, 0));
+	if (!Player)
 	{
-		if (Enemy->HasEngagedAttackToken())
-		{
-			// Token is already owned by this enemy for Engaged loop.
-		}
-		else
-		{
-			AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(UGameplayStatics::GetPlayerPawn(Enemy, 0));
-			if (!Player || !Player->RequestAttackToken()) return EStateTreeRunStatus::Failed;
-			InstanceData.bHasAttackToken = true;
-		}
+		return EStateTreeRunStatus::Failed;
 	}
 
-	InstanceData.bAttackDelegateBound = false;
-	InstanceData.Phase = EStateTreeAttackRunPhase::Rush;
-	InstanceData.CachedMoveSpeed = Enemy->GetCharacterMovement()->MaxWalkSpeed;
-	Enemy->GetCharacterMovement()->MaxWalkSpeed = InstanceData.RushSpeed;
-
+	if (!Player->RequestAttackToken())
+	{
+		return EStateTreeRunStatus::Failed;
+	}
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FStateTreeAttackRunTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+void FStateTreeRequestTokenTask::ExitState(FStateTreeExecutionContext& Context,
+	const FStateTreeTransitionResult& Transition) const
+{
+	AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(UGameplayStatics::GetPlayerPawn(Context.GetInstanceData(*this).Character.Get(), 0));
+
+	Player->ReturnAttackToken();
+}
+
+EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
 	if (!Enemy) return EStateTreeRunStatus::Failed;
 
-	AAIController* Controller = Cast<AAIController>(Enemy->GetController());
-	AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(UGameplayStatics::GetPlayerPawn(Enemy, 0));
-	if (!Controller || !Player) return EStateTreeRunStatus::Failed;
-	Controller->SetFocus(Player);
+	UE_LOG(LogTemp, Warning, TEXT("Entering Combo Attack State with %s"), *Enemy->GetActorLabel());
+	
+	bool Succeeded = false;
 
-	if (InstanceData.Phase == EStateTreeAttackRunPhase::Rush)
+	if (Enemy->PunchAbility && Enemy->MSC_AbilitySystemComponent)
 	{
-		const FVector EnemyLocation = Enemy->GetActorLocation();
-		const FVector PlayerLocation = Player->GetActorLocation();
-		FVector Direction = (EnemyLocation - PlayerLocation).GetSafeNormal2D();
-		if (Direction.IsNearlyZero())
-		{
-			Direction = Enemy->GetActorForwardVector().GetSafeNormal2D();
-		}
-
-		const FVector AttackPosition = PlayerLocation + Direction * InstanceData.AttackDistance;
-		Controller->MoveToLocation(AttackPosition, InstanceData.AttackDistanceTolerance, false, true, false, true, nullptr, true);
-
-		const float DistanceToPlayer = FVector::Distance(EnemyLocation, PlayerLocation);
-		if (DistanceToPlayer > InstanceData.AttackDistance + InstanceData.AttackDistanceTolerance)
-		{
-			return EStateTreeRunStatus::Running;
-		}
-
-		Controller->StopMovement();
-
-		if (!Enemy->PunchAbility || !Enemy->MSC_AbilitySystemComponent)
-		{
-			return EStateTreeRunStatus::Failed;
-		}
-
-		const bool bActivated = Enemy->MSC_AbilitySystemComponent->TryActivateAbilityByClass(Enemy->PunchAbility);
-		if (!bActivated)
-		{
-			return EStateTreeRunStatus::Failed;
-		}
-
-		Enemy->OnAttackCompletedNative.BindLambda(
-			[WeakContext = Context.MakeWeakExecutionContext(), WeakEnemy = TWeakObjectPtr<AMSC_CharacterEnemy>(Enemy), bKeepTokenOnSuccess = InstanceData.bKeepTokenOnSuccess]()
-			{
-				if (bKeepTokenOnSuccess && WeakEnemy.IsValid())
-				{
-					WeakEnemy->SetHasEngagedAttackToken(true);
-				}
-				static_cast<void>(WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded));
-			}
-		);
-		InstanceData.bAttackDelegateBound = true;
-		InstanceData.Phase = EStateTreeAttackRunPhase::WaitAttackDone;
+		Succeeded = Enemy->MSC_AbilitySystemComponent->TryActivateAbilityByClass(Enemy->PunchAbility);
 	}
+	if (!Succeeded)
+	{
+		return EStateTreeRunStatus::Failed;
+	}
+
+	Enemy->OnAttackCompletedNative.BindLambda(
+		[WeakContext = Context.MakeWeakExecutionContext()]()
+		{
+			WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
+		}
+	);
 
 	return EStateTreeRunStatus::Running;
 }
 
-void FStateTreeAttackRunTask::ExitState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+void FStateTreeComboAttackTask::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
 {
-	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
-	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
-
-	if (Enemy && InstanceData.bAttackDelegateBound)
-	{
-		Enemy->OnAttackCompletedNative.Unbind();
-		InstanceData.bAttackDelegateBound = false;
-	}
-
-	if (InstanceData.bHasAttackToken)
-	{
-		const bool bTokenTransferredToEngaged = Enemy && Enemy->HasEngagedAttackToken();
-		if (!bTokenTransferredToEngaged)
-		{
-			if (AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(UGameplayStatics::GetPlayerPawn(Enemy, 0)))
-			{
-				Player->ReturnAttackToken();
-			}
-		}
-		InstanceData.bHasAttackToken = false;
-	}
-
-	RestoreMovementSpeed(Enemy, InstanceData.CachedMoveSpeed);
-	InstanceData.CachedMoveSpeed = 0.0f;
+	FStateTreeTaskCommonBase::ExitState(Context, Transition);
 }
 
-EStateTreeRunStatus FStateTreeReleaseEngagedTokenTask::EnterState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+FText FStateTreeComboAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
 {
-	return EStateTreeRunStatus::Running;
-}
-
-void FStateTreeReleaseEngagedTokenTask::ExitState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
-{
-	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
-	if (AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get())
-	{
-		Enemy->ReleaseEngagedAttackToken();
-	}
+	return FStateTreeTaskCommonBase::GetDescription(ID, InstanceDataView, BindingLookup, Formatting);
 }
 
 EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::EnterState(FStateTreeExecutionContext& Context,
