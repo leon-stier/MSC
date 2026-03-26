@@ -11,12 +11,7 @@ class MSC_API UMSC_MovementAttributeSet : public UAttributeSet
 public:
 	UMSC_MovementAttributeSet();
 	
-	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FGameplayAttributeData MoveSpeed;
 	ATTRIBUTE_ACCESSORS_BASIC(UMSC_MovementAttributeSet, MoveSpeed);
-	
-	UPROPERTY(BlueprintAssignable)
-	FAttributeChangedEvent OnMoveSpeedChanged;
 };

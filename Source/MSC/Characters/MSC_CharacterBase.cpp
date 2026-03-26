@@ -32,6 +32,7 @@ void AMSC_CharacterBase::BeginPlay()
 	MSC_AbilitySystemComponent->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("Combat.Dead"))).AddUObject(this, &AMSC_CharacterBase::OnDeadTagChanged);
 	
 	GetCharacterMovement()->MaxWalkSpeed = MovementSet->GetMoveSpeed();
+	UE_LOG(LogTemp, Warning, TEXT("Initialized %s with Move Speed: %f"), *GetNameSafe(this), MovementSet->GetMoveSpeed());
 }
 
 UAbilitySystemComponent* AMSC_CharacterBase::GetAbilitySystemComponent() const
@@ -42,6 +43,8 @@ UAbilitySystemComponent* AMSC_CharacterBase::GetAbilitySystemComponent() const
 void AMSC_CharacterBase::OnMoveSpeedChanged(const FOnAttributeChangeData& Data) const
 {
 	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+	UE_LOG(LogTemp, Warning, TEXT("Changed %s with Move Speed: %f"), *GetNameSafe(this), MovementSet->GetMoveSpeed());
+	
 }
 
 void AMSC_CharacterBase::OnDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount) const

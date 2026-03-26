@@ -12,6 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "BaseGizmos/GizmoElementShared.h"
 #include "MSC/Characters/AI/MSC_CharacterEnemy.h"
+#include "MSC/GAS/MSC_MovementAttributeSet.h"
 
 
 AMSC_CharacterPlayer::AMSC_CharacterPlayer()
@@ -186,6 +187,7 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	{
 		Subsystem->RemoveMappingContext(LookMappingContext);
 	}
+	
 }
 
 void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
