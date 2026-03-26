@@ -59,6 +59,8 @@ void AMSC_EnemySpawner::SpawnEnemy()
 					FGameplayTag::RequestGameplayTag(FName("Combat.Dead")),
 					EGameplayTagEventType::NewOrRemoved)
 					.AddUObject(this, &AMSC_EnemySpawner::OnDeadTagChanged);
+				
+				CurrentlyAlive++;
 			}
 		}
 	}

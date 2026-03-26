@@ -53,10 +53,13 @@ void UMSC_HealthAttributeSet::PostGameplayEffectExecute(const struct FGameplayEf
 			AActor* Instigator = Cast<AActor>(
 				Data.EffectSpec.GetEffectContext().GetInstigator());
 			AActor* Target = Data.Target.GetAvatarActor();
+			
+			
 
 			FGameplayEventData EventData;
 			EventData.Instigator = Instigator;
 			EventData.Target = Target;
+			EventData.EventMagnitude = -Data.EvaluatedData.Magnitude;
 
 			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(
 				Target,

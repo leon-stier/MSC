@@ -17,7 +17,6 @@ AMSC_CharacterBase::AMSC_CharacterBase()
 void AMSC_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("Processing %d abilities in %s"), DefaultAbilities.Num(), *GetNameSafe(this));
 
 	MSC_AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	

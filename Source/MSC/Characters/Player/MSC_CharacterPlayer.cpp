@@ -213,7 +213,6 @@ void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
 
 bool AMSC_CharacterPlayer::RequestAttackToken()
 {	
-	UE_LOG(LogTemp, Warning, TEXT("Requested Attack Token. We got %d"), CurrentAttackerTokens)
 	if (CurrentAttackerTokens > 0)
 	{
 		--CurrentAttackerTokens;
@@ -229,7 +228,6 @@ void AMSC_CharacterPlayer::ReturnAttackToken()
 	{
 		CurrentAttackerTokens = MaxAllowedAttackers;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Token returned. We got %d"), CurrentAttackerTokens)
 }
 
 
