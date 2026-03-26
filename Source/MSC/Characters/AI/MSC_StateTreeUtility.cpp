@@ -13,21 +13,21 @@
 
 namespace
 {
-FVector GetEnGardeLocation(const AMSC_CharacterEnemy* Enemy, const AActor* PlayerActor, const float EnGardeDistance)
-{
-	const FVector PlayerLocation = PlayerActor->GetActorLocation();
-	const float SlotAngleRadians = FMath::DegreesToRadians(static_cast<float>(Enemy->GetUniqueID() % 360));
-	const FVector SlotDirection(FMath::Cos(SlotAngleRadians), FMath::Sin(SlotAngleRadians), 0.0f);
-	return PlayerLocation + SlotDirection * EnGardeDistance;
-}
-
-void RestoreMovementSpeed(AMSC_CharacterEnemy* Enemy, const float CachedSpeed)
-{
-	if (Enemy && Enemy->GetCharacterMovement() && CachedSpeed > 0.0f)
+	FVector GetEnGardeLocation(const AMSC_CharacterEnemy* Enemy, const AActor* PlayerActor, const float EnGardeDistance)
 	{
-		Enemy->GetCharacterMovement()->MaxWalkSpeed = CachedSpeed;
+		const FVector PlayerLocation = PlayerActor->GetActorLocation();
+		const float SlotAngleRadians = FMath::DegreesToRadians(static_cast<float>(Enemy->GetUniqueID() % 360));
+		const FVector SlotDirection(FMath::Cos(SlotAngleRadians), FMath::Sin(SlotAngleRadians), 0.0f);
+		return PlayerLocation + SlotDirection * EnGardeDistance;
 	}
-}
+
+	void RestoreMovementSpeed(AMSC_CharacterEnemy* Enemy, const float CachedSpeed)
+	{
+		if (Enemy && Enemy->GetCharacterMovement() && CachedSpeed > 0.0f)
+		{
+			Enemy->GetCharacterMovement()->MaxWalkSpeed = CachedSpeed;
+		}
+	}
 }
 
 EStateTreeRunStatus FStateTreeEnGardeTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
@@ -46,14 +46,15 @@ EStateTreeRunStatus FStateTreeEnGardeTask::Tick(FStateTreeExecutionContext& Cont
 
 	if (DistanceToSlot > InstanceData.DistanceTolerance)
 	{
-		Controller->MoveToLocation(DesiredLocation, InstanceData.DistanceTolerance, false, true, false, true, nullptr, true);
+		Controller->MoveToLocation(DesiredLocation, InstanceData.DistanceTolerance, false, true, false, true, nullptr,
+		                           true);
 	}
 
 	return EStateTreeRunStatus::Running;
 }
 
 EStateTreeRunStatus FStateTreeRequestTokenTask::EnterState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                                           const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
@@ -66,7 +67,7 @@ EStateTreeRunStatus FStateTreeRequestTokenTask::EnterState(FStateTreeExecutionCo
 	{
 		return EStateTreeRunStatus::Succeeded;
 	}
-	
+
 	AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(UGameplayStatics::GetPlayerPawn(Enemy, 0));
 	if (!Player)
 	{
@@ -83,13 +84,13 @@ EStateTreeRunStatus FStateTreeRequestTokenTask::EnterState(FStateTreeExecutionCo
 }
 
 void FStateTreeRequestTokenTask::ExitState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                           const FStateTreeTransitionResult& Transition) const
 {
 	// Token release is handled by explicit release/death states.
 }
 
 EStateTreeRunStatus FStateTreeReleaseTokenTask::EnterState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                                           const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	if (AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get())
@@ -101,7 +102,7 @@ EStateTreeRunStatus FStateTreeReleaseTokenTask::EnterState(FStateTreeExecutionCo
 }
 
 EStateTreeRunStatus FStateTreeMaintainEngageDistanceTask::EnterState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                                                     const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
@@ -115,7 +116,8 @@ EStateTreeRunStatus FStateTreeMaintainEngageDistanceTask::EnterState(FStateTreeE
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FStateTreeMaintainEngageDistanceTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+EStateTreeRunStatus FStateTreeMaintainEngageDistanceTask::Tick(FStateTreeExecutionContext& Context,
+                                                               const float DeltaTime) const
 {
 	(void)DeltaTime;
 
@@ -155,8 +157,10 @@ EStateTreeRunStatus FStateTreeMaintainEngageDistanceTask::Tick(FStateTreeExecuti
 			MoveAwayDir = Enemy->GetActorForwardVector().GetSafeNormal2D();
 		}
 
-		const FVector RetreatLocation = Enemy->GetActorLocation() + MoveAwayDir * (MinDistance - DistanceToPlayer + InstanceData.DistanceTolerance);
-		Controller->MoveToLocation(RetreatLocation, InstanceData.DistanceTolerance, false, true, false, true, nullptr, true);
+		const FVector RetreatLocation = Enemy->GetActorLocation() + MoveAwayDir * (MinDistance - DistanceToPlayer +
+			InstanceData.DistanceTolerance);
+		Controller->MoveToLocation(RetreatLocation, InstanceData.DistanceTolerance, false, true, false, true, nullptr,
+		                           true);
 		return EStateTreeRunStatus::Running;
 	}
 
@@ -165,7 +169,7 @@ EStateTreeRunStatus FStateTreeMaintainEngageDistanceTask::Tick(FStateTreeExecuti
 }
 
 void FStateTreeMaintainEngageDistanceTask::ExitState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                                     const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
@@ -177,14 +181,15 @@ void FStateTreeMaintainEngageDistanceTask::ExitState(FStateTreeExecutionContext&
 	InstanceData.CachedMoveSpeed = 0.0f;
 }
 
-EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionContext& Context,
+                                                          const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
 	if (!Enemy) return EStateTreeRunStatus::Failed;
 
 	UE_LOG(LogTemp, Warning, TEXT("Entering Combo Attack State with %s"), *Enemy->GetActorLabel());
-	
+
 	bool Succeeded = false;
 
 	if (Enemy->PunchAbility && Enemy->MSC_AbilitySystemComponent)
@@ -206,18 +211,21 @@ EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionCon
 	return EStateTreeRunStatus::Running;
 }
 
-void FStateTreeComboAttackTask::ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const
+void FStateTreeComboAttackTask::ExitState(FStateTreeExecutionContext& Context,
+                                          const FStateTreeTransitionResult& Transition) const
 {
 	FStateTreeTaskCommonBase::ExitState(Context, Transition);
 }
 
-FText FStateTreeComboAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting) const
+FText FStateTreeComboAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                                const IStateTreeBindingLookup& BindingLookup,
+                                                EStateTreeNodeFormatting Formatting) const
 {
 	return FStateTreeTaskCommonBase::GetDescription(ID, InstanceDataView, BindingLookup, Formatting);
 }
 
 EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::EnterState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                                               const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
@@ -229,7 +237,8 @@ EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::EnterState(FStateTreeExecuti
 	return EStateTreeRunStatus::Running;
 }
 
-EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
+EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::Tick(FStateTreeExecutionContext& Context,
+                                                         const float DeltaTime) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
@@ -241,7 +250,8 @@ EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::Tick(FStateTreeExecutionCont
 	Controller->SetFocus(PlayerActor);
 
 	const FVector RetreatLocation = GetEnGardeLocation(Enemy, PlayerActor, InstanceData.EnGardeDistance);
-	Controller->MoveToLocation(RetreatLocation, InstanceData.DistanceTolerance, false, true, false, true, nullptr, true);
+	Controller->MoveToLocation(RetreatLocation, InstanceData.DistanceTolerance, false, true, false, true, nullptr,
+	                           true);
 
 	const float DistanceToSlot = FVector::Distance(Enemy->GetActorLocation(), RetreatLocation);
 	if (DistanceToSlot <= InstanceData.DistanceTolerance)
@@ -254,7 +264,7 @@ EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::Tick(FStateTreeExecutionCont
 }
 
 void FStateTreeRetreatToEnGardeTask::ExitState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                               const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	RestoreMovementSpeed(InstanceData.Character.Get(), InstanceData.CachedMoveSpeed);
@@ -280,7 +290,8 @@ bool FStateTreeIsPlayerDeadCondition::TestCondition(FStateTreeExecutionContext& 
 		return false;
 	}
 
-	const AMSC_CharacterBase* PlayerCharacter = Cast<AMSC_CharacterBase>(UGameplayStatics::GetPlayerPawn(InstanceData.Character.Get(), 0));
+	const AMSC_CharacterBase* PlayerCharacter = Cast<AMSC_CharacterBase>(
+		UGameplayStatics::GetPlayerPawn(InstanceData.Character.Get(), 0));
 	return PlayerCharacter ? PlayerCharacter->IsDead() : false;
 }
 
@@ -315,15 +326,11 @@ FText FStateTreeGetPlayerInfoTask::GetDescription(const FGuid& ID, FStateTreeDat
 EStateTreeRunStatus FStateTreeFaceActorTask::EnterState(FStateTreeExecutionContext& Context,
                                                         const FStateTreeTransitionResult& Transition) const
 {
-	// have we transitioned from another state?
-	if (Transition.ChangeType == EStateTreeStateChangeType::Changed)
-	{
-		// get the instance data
-		FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	// get the instance data
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 
-		// set the AI Controller's focus
-		InstanceData.Controller->SetFocus(InstanceData.ActorToFaceTowards);
-	}
+	// set the AI Controller's focus
+	InstanceData.Controller->SetFocus(InstanceData.ActorToFaceTowards);
 
 	return EStateTreeRunStatus::Running;
 }
@@ -367,7 +374,7 @@ bool FStateTreeCanEnemyAttackCondition::TestCondition(FStateTreeExecutionContext
 }
 
 EStateTreeRunStatus FStateTreeReactiveBlockTask::EnterState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                                            const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
@@ -411,7 +418,7 @@ EStateTreeRunStatus FStateTreeReactiveBlockTask::Tick(FStateTreeExecutionContext
 }
 
 void FStateTreeReactiveBlockTask::ExitState(FStateTreeExecutionContext& Context,
-	const FStateTreeTransitionResult& Transition) const
+                                            const FStateTreeTransitionResult& Transition) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();

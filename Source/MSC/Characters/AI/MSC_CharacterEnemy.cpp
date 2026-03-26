@@ -10,9 +10,10 @@
 AMSC_CharacterEnemy::AMSC_CharacterEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->bAllowPhysicsRotationDuringAnimRootMotion = true;
 }
 
 void AMSC_CharacterEnemy::BeginPlay()
