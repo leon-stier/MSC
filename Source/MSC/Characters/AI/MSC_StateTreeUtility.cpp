@@ -188,7 +188,6 @@ EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionCon
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
 	if (!Enemy) return EStateTreeRunStatus::Failed;
 
-	UE_LOG(LogTemp, Warning, TEXT("Entering Combo Attack State with %s"), *Enemy->GetActorLabel());
 
 	bool Succeeded = false;
 
