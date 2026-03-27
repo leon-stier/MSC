@@ -162,6 +162,10 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	{
 		AMSC_CharacterEnemy* Candidate = Cast<AMSC_CharacterEnemy>(Result.GetActor());
 		if (!Candidate) continue;
+		static FGameplayTagContainer DeadTags;
+		DeadTags.AddTag(FGameplayTag::RequestGameplayTag("Combat.Dead"));
+		DeadTags.AddTag(FGameplayTag::RequestGameplayTag("Combat.Dying"));
+		if (Candidate->MSC_AbilitySystemComponent->HasAnyMatchingGameplayTags(DeadTags)) continue;
 
 		FVector Direction = (Candidate->GetActorLocation() - Start).GetSafeNormal();
 		const float Dot = FVector::DotProduct(Forward, Direction);
@@ -193,24 +197,24 @@ void AMSC_CharacterPlayer::DoLockTarget()
 void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
 {
 	if (!HitTarget || !Controller) return;
-	
-	const FVector Start = GetActorLocation();
-	const FVector TargetLocation = HitTarget->GetActorLocation();
 
-	FVector Direction = (TargetLocation - Start);
-	Direction.Z = 0.f; // Keep rotation horizontal
+	const FVector Start = GetActorLocation();
+	FVector Direction = HitTarget->GetActorLocation() - Start;
+	Direction.Z = 0.f;
+
+	if (Direction.IsNearlyZero()) return;
 
 	const FRotator TargetRotation = Direction.Rotation();
 
-	// Optional: Smooth rotation
+	const float LockOnInterpSpeed = 12.0f; // higher = faster turn
 	const FRotator NewRotation = FMath::RInterpTo(
 		Controller->GetControlRotation(),
 		TargetRotation,
 		DeltaTime,
-		10.f // Rotation speed
+		LockOnInterpSpeed
 	);
 
-	Controller->SetControlRotation(TargetRotation);
+	Controller->SetControlRotation(NewRotation);
 }
 
 bool AMSC_CharacterPlayer::RequestAttackToken()
@@ -285,6 +289,7 @@ void AMSC_CharacterPlayer::Look(const FInputActionValue& Value)
 void AMSC_CharacterPlayer::OnTargetDied(const FGameplayTag Tag, int32 NewCount)
 {
 	UnlockTarget();
+	DoLockTarget();
 }
 
 void AMSC_CharacterPlayer::UnlockTarget()
