@@ -56,6 +56,9 @@ public:
 	UFUNCTION()
 	void ReturnAttackToken();
 	
+	UFUNCTION(BlueprintCallable)
+	AMSC_CharacterEnemy* GetHitTarget() const;
+	
 	UPROPERTY()
 	int MaxAllowedAttackers = 1;
 	

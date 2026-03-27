@@ -177,6 +177,7 @@ void AMSC_CharacterPlayer::DoLockTarget()
 			BestTarget = Candidate;
 		}
 	}
+	if (BestTarget == nullptr) return;
 
 	HitTarget = BestTarget;
 	
@@ -234,6 +235,11 @@ void AMSC_CharacterPlayer::ReturnAttackToken()
 	{
 		CurrentAttackerTokens = MaxAllowedAttackers;
 	}
+}
+
+AMSC_CharacterEnemy* AMSC_CharacterPlayer::GetHitTarget() const
+{
+	return HitTarget;
 }
 
 

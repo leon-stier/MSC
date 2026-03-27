@@ -3,6 +3,7 @@
 #include "Containers/List.h"
 #include "MSC_CharacterEnemy.generated.h"
 
+class AMSC_CharacterPlayer;
 DECLARE_DELEGATE(FOnAttackCompletedNative);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackCompleted);
 
