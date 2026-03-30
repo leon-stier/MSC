@@ -32,6 +32,8 @@ namespace
 
 EStateTreeRunStatus FStateTreeEnGardeTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
+	(void)DeltaTime;
+
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
 	if (!Enemy) return EStateTreeRunStatus::Failed;
@@ -39,17 +41,28 @@ EStateTreeRunStatus FStateTreeEnGardeTask::Tick(FStateTreeExecutionContext& Cont
 	AAIController* Controller = Cast<AAIController>(Enemy->GetController());
 	AActor* PlayerActor = UGameplayStatics::GetPlayerPawn(Enemy, 0);
 	if (!Controller || !PlayerActor) return EStateTreeRunStatus::Failed;
+
 	Controller->SetFocus(PlayerActor);
 
-	const FVector DesiredLocation = GetEnGardeLocation(Enemy, PlayerActor, InstanceData.EnGardeDistance);
-	const float DistanceToSlot = FVector::Distance(Enemy->GetActorLocation(), DesiredLocation);
+	const float DistanceToPlayer = FVector::Dist2D(
+		Enemy->GetActorLocation(),
+		PlayerActor->GetActorLocation());
 
-	if (DistanceToSlot > InstanceData.DistanceTolerance)
+	const float MaxAllowedDistance = InstanceData.EnGardeDistance + InstanceData.DistanceTolerance;
+
+	if (DistanceToPlayer > MaxAllowedDistance)
 	{
-		Controller->MoveToLocation(DesiredLocation, InstanceData.DistanceTolerance, false, true, false, true, nullptr,
-		                           true);
+		// Move in until we're within en garde distance.
+		Controller->MoveToActor(
+			PlayerActor,
+			InstanceData.EnGardeDistance, // acceptance radius around player
+			true, true, false, nullptr, true);
+
+		return EStateTreeRunStatus::Running;
 	}
 
+	// Inside/under en garde range: hold position (do not back away).
+	Controller->StopMovement();
 	return EStateTreeRunStatus::Running;
 }
 

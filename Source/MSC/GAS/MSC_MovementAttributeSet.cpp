@@ -3,6 +3,6 @@
 
 UMSC_MovementAttributeSet::UMSC_MovementAttributeSet()
 {
-	MoveSpeed = 400.0f;
+	MoveSpeed = 300.0f;
 }
 
