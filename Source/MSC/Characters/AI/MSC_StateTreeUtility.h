@@ -320,6 +320,37 @@ struct FStateTreeIsCharacterDeadCondition : public FStateTreeConditionCommonBase
 	
 };
 
+/**
+ *  Instance data struct for the FStateTreeIsCharacterDeadCondition condition
+ */
+USTRUCT()
+struct FStateTreeCharacterNotStunnedConditionInstanceData
+{
+	GENERATED_BODY()
+	
+	/** Character to check dead status on */
+	UPROPERTY(EditAnywhere, Category = "Context")
+	AMSC_CharacterEnemy* Character;
+};
+STATETREE_POD_INSTANCEDATA(FStateTreeCharacterNotStunnedConditionInstanceData);
+
+/**
+ *  StateTree condition to check if the character is dead
+ */
+USTRUCT(DisplayName="Is Character NotStunned?", Category="Combat")
+struct FStateTreeIsCharacterNotStunnedCondition : public FStateTreeConditionCommonBase
+{
+	GENERATED_BODY()
+	
+	using FInstanceDataType = FStateTreeCharacterNotStunnedConditionInstanceData;
+	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
+	
+	FStateTreeIsCharacterNotStunnedCondition() = default;
+	
+	virtual bool TestCondition(FStateTreeExecutionContext& Context) const override;
+	
+};
+
 USTRUCT()
 struct FStateTreePlayerDeadConditionInstanceData
 {

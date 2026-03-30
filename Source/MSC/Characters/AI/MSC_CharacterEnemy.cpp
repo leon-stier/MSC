@@ -4,6 +4,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "MSC/Characters/Player/MSC_CharacterPlayer.h"
 
@@ -32,6 +33,8 @@ void AMSC_CharacterEnemy::BeginPlay()
 			).AddUObject(this, &AMSC_CharacterEnemy::OnPlayerAttackStarted);
 		}
 	}
+	
+	MSC_AbilitySystemComponent->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("Combat.Stunned"))).AddUObject(this, &AMSC_CharacterEnemy::OnStunnedTagChanged);
 }
 
 void AMSC_CharacterEnemy::OnPlayerAttackStarted(FGameplayTag CallbackTag, int32 NewCount)
@@ -96,4 +99,19 @@ void AMSC_CharacterEnemy::DoPunch()
 void AMSC_CharacterEnemy::OnAttackCompletedForward()
 {
 	OnAttackCompletedNative.ExecuteIfBound();
+}
+
+void AMSC_CharacterEnemy::OnStunnedTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	// If stunned tag is added, interrupt current actions and clear attack token if we have it
+	if (NewCount > 0)
+	{
+		Controller->StopMovement();
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
+	} else if (NewCount == 0)
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+		
 }

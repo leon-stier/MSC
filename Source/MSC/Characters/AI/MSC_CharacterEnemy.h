@@ -42,6 +42,9 @@ public:
 private:
 	UFUNCTION()
 	void OnAttackCompletedForward();
+	
+	UFUNCTION()
+	void OnStunnedTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 
 	UFUNCTION()
 	void OnPlayerAttackStarted(FGameplayTag CallbackTag, int32 NewCount);

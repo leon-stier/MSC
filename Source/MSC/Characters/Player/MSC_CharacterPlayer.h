@@ -45,6 +45,9 @@ public:
 	virtual void DoBlockEnd();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoParry();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLockTarget();
 	
 	UFUNCTION()
@@ -74,6 +77,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<UGameplayAbility> BlockAbility;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayAbility> ParryAbility;
+	
 	UPROPERTY()
 	float TargetLockDistance = 500.0f;
 	
@@ -99,6 +105,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* BlockAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* ParryAction;
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* LockTargetAction;

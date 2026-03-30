@@ -127,6 +127,14 @@ void AMSC_CharacterPlayer::DoBlockEnd()
 	
 }
 
+void AMSC_CharacterPlayer::DoParry()
+{
+	if (MSC_AbilitySystemComponent && ParryAbility)
+	{
+		MSC_AbilitySystemComponent->TryActivateAbilityByClass(ParryAbility);
+	}
+}
+
 void AMSC_CharacterPlayer::DoLockTarget()
 {
 	if (HitTarget)
@@ -266,6 +274,9 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		// Block
 		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &AMSC_CharacterPlayer::DoBlockStart);
 		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &AMSC_CharacterPlayer::DoBlockEnd);
+		
+		// Parry
+		EnhancedInputComponent->BindAction(ParryAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoParry);
 		
 	}
 	else

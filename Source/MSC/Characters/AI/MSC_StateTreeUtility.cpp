@@ -294,6 +294,16 @@ bool FStateTreeIsCharacterDeadCondition::TestCondition(FStateTreeExecutionContex
 	return InstanceData.Character->IsDead();
 }
 
+bool FStateTreeIsCharacterNotStunnedCondition::TestCondition(FStateTreeExecutionContext& Context) const
+{
+	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
+	if (!InstanceData.Character)
+	{
+		return true;
+	}
+	return !InstanceData.Character->MSC_AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("Combat.Stunned")));
+}
+
 bool FStateTreeIsPlayerDeadCondition::TestCondition(FStateTreeExecutionContext& Context) const
 {
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
