@@ -52,6 +52,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLockTarget();
+
+	UFUNCTION()
+	void HandleLockSwitchInput(const FInputActionValue& Value);
+
+	UFUNCTION()
+	void OnLockSwitchReleased(const FInputActionValue& Value);
 	
 	UFUNCTION()
 	void UpdateLockOnRotation(float DetlaTime);
@@ -91,6 +97,12 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "LockOn", meta = (ClampMin = "0.0"))
 	float TargetLockSimilarDistanceThreshold = 75.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "LockOn", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float LockSwitchDeadzone = 0.65f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "LockOn", meta = (ClampMin = "0.0"))
+	float LockSwitchCooldownSeconds = 0.2f;
 	
 protected:
 	/** Jump Input Action */
@@ -123,6 +135,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* LockTargetAction;
+
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* LockSwitchAction;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -136,6 +151,8 @@ private:
 	void OnTargetDied(const FGameplayTag Tag, int32 NewCount);
 	
 	void UnlockTarget();
+	void SetLockedTarget(AMSC_CharacterEnemy* NewTarget);
+	AMSC_CharacterEnemy* FindBestSideLockTarget(int32 SideSign) const;
 	
 	FDelegateHandle DeadTagEventHandle;
 	
@@ -157,5 +174,7 @@ private:
 	int32 LookMappingContextPriority = 0;
 	
 	int CurrentAttackerTokens = MaxAllowedAttackers;
+	float LastLockSwitchTime = -1000.0f;
+	bool bLockSwitchAxisLatched = false;
 	
 };

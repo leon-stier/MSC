@@ -200,13 +200,7 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	}
 	if (BestTarget == nullptr) return;
 
-	HitTarget = BestTarget;
-	HitTarget->SetIsLockTarget(true);
-	
-	DeadTagEventHandle = HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
-			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
-			EGameplayTagEventType::NewOrRemoved)
-			.AddUObject(this, &AMSC_CharacterPlayer::OnTargetDied);
+	SetLockedTarget(BestTarget);
 	
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
 		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
@@ -214,6 +208,135 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	{
 		Subsystem->RemoveMappingContext(LookMappingContext);
 	}
+}
+
+void AMSC_CharacterPlayer::HandleLockSwitchInput(const FInputActionValue& Value)
+{
+	if (!HitTarget || !GetWorld())
+	{
+		return;
+	}
+
+	const FVector2D SwitchAxis = Value.Get<FVector2D>();
+	const float Horizontal = SwitchAxis.X;
+
+	if (FMath::Abs(Horizontal) < LockSwitchDeadzone)
+	{
+		bLockSwitchAxisLatched = false;
+		return;
+	}
+
+	if (bLockSwitchAxisLatched)
+	{
+		return;
+	}
+
+	const float Now = GetWorld()->GetTimeSeconds();
+	if (Now - LastLockSwitchTime < LockSwitchCooldownSeconds)
+	{
+		return;
+	}
+
+	const int32 SideSign = Horizontal > 0.0f ? 1 : -1;
+	if (AMSC_CharacterEnemy* SideTarget = FindBestSideLockTarget(SideSign))
+	{
+		SetLockedTarget(SideTarget);
+		LastLockSwitchTime = Now;
+	}
+
+	// Latch until the stick is released to avoid repeated switching per deflection.
+	bLockSwitchAxisLatched = true;
+}
+
+void AMSC_CharacterPlayer::OnLockSwitchReleased(const FInputActionValue& Value)
+{
+	bLockSwitchAxisLatched = false;
+}
+
+AMSC_CharacterEnemy* AMSC_CharacterPlayer::FindBestSideLockTarget(const int32 SideSign) const
+{
+	if (!HitTarget)
+	{
+		return nullptr;
+	}
+
+	const FVector Start = GetActorLocation();
+	FVector CurrentDirection = HitTarget->GetActorLocation() - Start;
+	CurrentDirection.Z = 0.0f;
+	if (CurrentDirection.IsNearlyZero())
+	{
+		return nullptr;
+	}
+	CurrentDirection.Normalize();
+
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	const bool bHit = GetWorld()->OverlapMultiByObjectType(
+		OverlapResults,
+		Start,
+		FQuat::Identity,
+		FCollisionObjectQueryParams(ECC_Pawn),
+		FCollisionShape::MakeSphere(TargetLockDistance),
+		QueryParams
+	);
+	if (!bHit)
+	{
+		return nullptr;
+	}
+
+	AMSC_CharacterEnemy* BestTarget = nullptr;
+	float BestAngle = TNumericLimits<float>::Max();
+	float BestDistanceSq = TNumericLimits<float>::Max();
+
+	for (const FOverlapResult& Result : OverlapResults)
+	{
+		AMSC_CharacterEnemy* Candidate = Cast<AMSC_CharacterEnemy>(Result.GetActor());
+		if (!Candidate || Candidate == HitTarget)
+		{
+			continue;
+		}
+
+		static FGameplayTagContainer DeadTags;
+		DeadTags.AddTag(FGameplayTag::RequestGameplayTag("Combat.Dead"));
+		DeadTags.AddTag(FGameplayTag::RequestGameplayTag("Combat.Dying"));
+		if (Candidate->MSC_AbilitySystemComponent->HasAnyMatchingGameplayTags(DeadTags))
+		{
+			continue;
+		}
+
+		FVector CandidateDirection = Candidate->GetActorLocation() - Start;
+		CandidateDirection.Z = 0.0f;
+		if (CandidateDirection.IsNearlyZero())
+		{
+			continue;
+		}
+		const float DistanceSq = CandidateDirection.SizeSquared();
+		CandidateDirection.Normalize();
+
+		const float Dot = FVector::DotProduct(CurrentDirection, CandidateDirection);
+		const float ClampedDot = FMath::Clamp(Dot, -1.0f, 1.0f);
+		const float Angle = FMath::Acos(ClampedDot);
+		const float CrossZ = FVector::CrossProduct(CurrentDirection, CandidateDirection).Z;
+		const bool bOnRequestedSide = (SideSign > 0) ? (CrossZ > 0.0f) : (CrossZ < 0.0f);
+		if (!bOnRequestedSide)
+		{
+			continue;
+		}
+
+		const bool bIsBetterAngle = Angle + KINDA_SMALL_NUMBER < BestAngle;
+		const bool bSimilarAngle = FMath::Abs(Angle - BestAngle) <= KINDA_SMALL_NUMBER;
+		const bool bIsCloserTieBreak = bSimilarAngle && DistanceSq < BestDistanceSq;
+		if (BestTarget == nullptr || bIsBetterAngle || bIsCloserTieBreak)
+		{
+			BestTarget = Candidate;
+			BestAngle = Angle;
+			BestDistanceSq = DistanceSq;
+		}
+	}
+
+	return BestTarget;
 }
 
 void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
@@ -228,7 +351,7 @@ void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
 
 	const FRotator TargetRotation = Direction.Rotation();
 
-	const float LockOnInterpSpeed = 12.0f; // higher = faster turn
+	const float LockOnInterpSpeed = 12.0f;
 	const FRotator NewRotation = FMath::RInterpTo(
 		Controller->GetControlRotation(),
 		TargetRotation,
@@ -280,6 +403,12 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::Look);
 		EnhancedInputComponent->BindAction(LockTargetAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoLockTarget);
+		if (LockSwitchAction)
+		{
+			EnhancedInputComponent->BindAction(LockSwitchAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::HandleLockSwitchInput);
+			EnhancedInputComponent->BindAction(LockSwitchAction, ETriggerEvent::Completed, this, &AMSC_CharacterPlayer::OnLockSwitchReleased);
+			EnhancedInputComponent->BindAction(LockSwitchAction, ETriggerEvent::Canceled, this, &AMSC_CharacterPlayer::OnLockSwitchReleased);
+		}
 		
 		// Punch
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoPunch);
@@ -329,11 +458,7 @@ void AMSC_CharacterPlayer::UnlockTarget()
 {
 	if (HitTarget)
 	{
-		HitTarget->SetIsLockTarget(false);
-		HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
-			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
-			EGameplayTagEventType::NewOrRemoved)
-			.Remove(DeadTagEventHandle);
+		SetLockedTarget(nullptr);
 		
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = 
 		ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
@@ -341,9 +466,33 @@ void AMSC_CharacterPlayer::UnlockTarget()
 		{
 			Subsystem->AddMappingContext(LookMappingContext, LookMappingContextPriority);
 		}
-		
-		HitTarget = nullptr;
 	}
-	
 }
 
+void AMSC_CharacterPlayer::SetLockedTarget(AMSC_CharacterEnemy* NewTarget)
+{
+	if (HitTarget == NewTarget)
+	{
+		return;
+	}
+
+	if (HitTarget)
+	{
+		HitTarget->SetIsLockTarget(false);
+		HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
+			EGameplayTagEventType::NewOrRemoved)
+			.Remove(DeadTagEventHandle);
+	}
+
+	HitTarget = NewTarget;
+
+	if (HitTarget)
+	{
+		HitTarget->SetIsLockTarget(true);
+		DeadTagEventHandle = HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
+			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
+			EGameplayTagEventType::NewOrRemoved)
+			.AddUObject(this, &AMSC_CharacterPlayer::OnTargetDied);
+	}
+}
