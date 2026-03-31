@@ -135,6 +135,14 @@ void AMSC_CharacterPlayer::DoParry()
 	}
 }
 
+void AMSC_CharacterPlayer::DoDodge()
+{
+	if (MSC_AbilitySystemComponent && DodgeAbility)
+	{
+		MSC_AbilitySystemComponent->TryActivateAbilityByClass(DodgeAbility);
+	}
+}
+
 void AMSC_CharacterPlayer::DoLockTarget()
 {
 	if (HitTarget)
@@ -277,6 +285,9 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		
 		// Parry
 		EnhancedInputComponent->BindAction(ParryAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoParry);
+		
+		// Dodge
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoDodge);
 		
 	}
 	else
