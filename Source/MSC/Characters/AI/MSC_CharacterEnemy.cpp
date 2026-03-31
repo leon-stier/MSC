@@ -76,6 +76,17 @@ void AMSC_CharacterEnemy::ReleaseEngagedAttackToken()
 	bHasEngagedAttackToken = false;
 }
 
+void AMSC_CharacterEnemy::SetIsLockTarget(const bool bInIsLockTarget)
+{
+	if (bIsLockTarget == bInIsLockTarget)
+	{
+		return;
+	}
+
+	bIsLockTarget = bInIsLockTarget;
+	BP_OnLockTargetStateChanged(bIsLockTarget);
+}
+
 void AMSC_CharacterEnemy::SendContinueComboInputEvent()
 {
 	if (MSC_AbilitySystemComponent)

@@ -10,9 +10,7 @@
 #include "MSC/GAS/MSC_AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "EnhancedInputSubsystems.h"
-#include "BaseGizmos/GizmoElementShared.h"
 #include "MSC/Characters/AI/MSC_CharacterEnemy.h"
-#include "MSC/GAS/MSC_MovementAttributeSet.h"
 
 
 AMSC_CharacterPlayer::AMSC_CharacterPlayer()
@@ -196,6 +194,7 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	if (BestTarget == nullptr) return;
 
 	HitTarget = BestTarget;
+	HitTarget->SetIsLockTarget(true);
 	
 	DeadTagEventHandle = HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
 			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
@@ -324,6 +323,7 @@ void AMSC_CharacterPlayer::UnlockTarget()
 {
 	if (HitTarget)
 	{
+		HitTarget->SetIsLockTarget(false);
 		HitTarget->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
 			FGameplayTag::RequestGameplayTag(FName("Combat.Dying")),
 			EGameplayTagEventType::NewOrRemoved)
@@ -340,5 +340,4 @@ void AMSC_CharacterPlayer::UnlockTarget()
 	}
 	
 }
-
 

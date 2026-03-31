@@ -24,6 +24,15 @@ public:
 	bool HasEngagedAttackToken() const;
 	void SetHasEngagedAttackToken(bool bInHasToken);
 	void ReleaseEngagedAttackToken();
+
+	UFUNCTION(BlueprintCallable, Category = "LockOn")
+	void SetIsLockTarget(bool bInIsLockTarget);
+
+	UFUNCTION(BlueprintPure, Category = "LockOn")
+	bool IsLockTarget() const { return bIsLockTarget; }
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "LockOn")
+	void BP_OnLockTargetStateChanged(bool bNowLocked);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<UGameplayAbility> PunchAbility;
@@ -54,5 +63,8 @@ private:
 
 	UPROPERTY(Transient)
 	bool bHasEngagedAttackToken = false;
+
+	UPROPERTY(Transient)
+	bool bIsLockTarget = false;
 
 };
