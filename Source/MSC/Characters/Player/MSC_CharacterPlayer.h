@@ -88,6 +88,9 @@ public:
 	
 	UPROPERTY()
 	float TargetLockDistance = 500.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "LockOn", meta = (ClampMin = "0.0"))
+	float TargetLockSimilarDistanceThreshold = 75.0f;
 	
 protected:
 	/** Jump Input Action */

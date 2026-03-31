@@ -154,21 +154,21 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
 	
-	// DrawDebugSphere(GetWorld(), Start, 700.0f, 16, FColor::Green, false, 2.f);
-
 	const bool bHit = GetWorld()->OverlapMultiByObjectType(
 		OverlapResults,
 		Start,
 		FQuat::Identity,
 		FCollisionObjectQueryParams(ECC_Pawn),
-		FCollisionShape::MakeSphere(700.0f),
+		FCollisionShape::MakeSphere(TargetLockDistance),
 		QueryParams
 	);
 	
 	if (!bHit) return;
 	
 	AMSC_CharacterEnemy* BestTarget = nullptr;
-	float BestScore = -1.f;
+	float BestDistanceSq = TNumericLimits<float>::Max();
+	float BestDot = -1.0f;
+	const float SimilarDistanceThresholdSq = FMath::Square(TargetLockSimilarDistanceThreshold);
 
 	const FVector Forward = GetActorForwardVector();
 
@@ -176,19 +176,26 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	{
 		AMSC_CharacterEnemy* Candidate = Cast<AMSC_CharacterEnemy>(Result.GetActor());
 		if (!Candidate) continue;
+		
 		static FGameplayTagContainer DeadTags;
 		DeadTags.AddTag(FGameplayTag::RequestGameplayTag("Combat.Dead"));
 		DeadTags.AddTag(FGameplayTag::RequestGameplayTag("Combat.Dying"));
 		if (Candidate->MSC_AbilitySystemComponent->HasAnyMatchingGameplayTags(DeadTags)) continue;
 
-		FVector Direction = (Candidate->GetActorLocation() - Start).GetSafeNormal();
+		const FVector ToCandidate = Candidate->GetActorLocation() - Start;
+		const float DistanceSq = ToCandidate.SizeSquared();
+		const FVector Direction = ToCandidate.GetSafeNormal();
 		const float Dot = FVector::DotProduct(Forward, Direction);
 
-		// Higher dot = more in front of player
-		if (Dot > BestScore)
+		const bool bIsClearlyCloser = DistanceSq + SimilarDistanceThresholdSq < BestDistanceSq;
+		const bool bIsSimilarDistance = FMath::Abs(DistanceSq - BestDistanceSq) <= SimilarDistanceThresholdSq;
+		const bool bIsBetterFrontPreference = bIsSimilarDistance && Dot > BestDot;
+
+		if (BestTarget == nullptr || bIsClearlyCloser || bIsBetterFrontPreference)
 		{
-			BestScore = Dot;
 			BestTarget = Candidate;
+			BestDistanceSq = DistanceSq;
+			BestDot = Dot;
 		}
 	}
 	if (BestTarget == nullptr) return;
@@ -207,7 +214,6 @@ void AMSC_CharacterPlayer::DoLockTarget()
 	{
 		Subsystem->RemoveMappingContext(LookMappingContext);
 	}
-	
 }
 
 void AMSC_CharacterPlayer::UpdateLockOnRotation(float DeltaTime)
