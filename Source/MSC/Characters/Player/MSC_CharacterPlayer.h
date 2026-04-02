@@ -62,10 +62,10 @@ public:
 	UFUNCTION()
 	void UpdateLockOnRotation(float DetlaTime);
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	bool RequestAttackToken();
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void ReturnAttackToken();
 	
 	UFUNCTION(BlueprintCallable)

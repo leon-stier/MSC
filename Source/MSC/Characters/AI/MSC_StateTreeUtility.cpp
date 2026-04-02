@@ -420,23 +420,7 @@ EStateTreeRunStatus FStateTreeReactiveBlockTask::EnterState(FStateTreeExecutionC
 	}
 
 	InstanceData.bBlockAbilityActive = true;
-	InstanceData.ElapsedBlockTime = 0.0f;
 	return EStateTreeRunStatus::Running;
-}
-
-EStateTreeRunStatus FStateTreeReactiveBlockTask::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
-{
-	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
-	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
-	if (!Enemy) return EStateTreeRunStatus::Failed;
-
-	InstanceData.ElapsedBlockTime += DeltaTime;
-	if (InstanceData.ElapsedBlockTime >= InstanceData.MaxBlockDuration)
-	{
-		return EStateTreeRunStatus::Succeeded;
-	}
-
-	return Enemy->IsPlayerAttacking() ? EStateTreeRunStatus::Running : EStateTreeRunStatus::Succeeded;
 }
 
 void FStateTreeReactiveBlockTask::ExitState(FStateTreeExecutionContext& Context,

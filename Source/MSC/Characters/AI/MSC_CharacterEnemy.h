@@ -21,8 +21,13 @@ public:
 	void SendContinueComboInputEvent();
 	bool IsPlayerAttacking() const;
 	
+	UFUNCTION(BlueprintCallable)
 	bool HasEngagedAttackToken() const;
+
+	UFUNCTION(BlueprintCallable)
 	void SetHasEngagedAttackToken(bool bInHasToken);
+	
+	UFUNCTION(BlueprintCallable)
 	void ReleaseEngagedAttackToken();
 
 	UFUNCTION(BlueprintCallable, Category = "LockOn")

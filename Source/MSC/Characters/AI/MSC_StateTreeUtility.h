@@ -201,9 +201,6 @@ struct FStateTreeReactiveBlockInstanceData
 	UPROPERTY(EditAnywhere, Category = Parameter)
 	float BlockChance = 0.85f;
 
-	UPROPERTY(EditAnywhere, Category = Parameter)
-	float MaxBlockDuration = 0.7f;
-
 	UPROPERTY(Transient)
 	bool bBlockAbilityActive = false;
 
@@ -223,7 +220,6 @@ struct FStateTreeReactiveBlockTask : public FStateTreeTaskCommonBase
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-	virtual EStateTreeRunStatus Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const override;
 	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 };
 
