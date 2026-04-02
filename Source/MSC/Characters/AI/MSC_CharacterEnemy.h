@@ -42,7 +42,7 @@ public:
 	
 	FOnAttackCompletedNative OnAttackCompletedNative;
 	
-	UPROPERTY(BlueprintCallable)
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FOnAttackCompleted OnAttackCompleted;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat", meta = (ClampMin = 0.1f))
