@@ -28,14 +28,14 @@ AMSC_EnemySpawner::AMSC_EnemySpawner()
 void AMSC_EnemySpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &AMSC_EnemySpawner::SpawnEnemy, InitialSpawnDelay);
 }
 
 void AMSC_EnemySpawner::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	
+
 	GetWorld()->GetTimerManager().ClearTimer(SpawnTimer);
 }
 
@@ -48,34 +48,46 @@ void AMSC_EnemySpawner::SpawnEnemy()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		for (int i = 0; i < SpawnCount; i++) {
-			AMSC_CharacterEnemy* SpawnedEnemy = GetWorld()->SpawnActor<AMSC_CharacterEnemy>(EnemyClass, SpawnCapsule->GetComponentTransform(), SpawnParams);
+		for (int i = 0; i < SpawnCount; i++)
+		{
+			AMSC_CharacterEnemy* SpawnedEnemy = GetWorld()->SpawnActor<AMSC_CharacterEnemy>(
+				EnemyClass, SpawnCapsule->GetComponentTransform(), SpawnParams);
 
 			// was the enemy successfully created?
 			if (SpawnedEnemy && SpawnedEnemy->GetAbilitySystemComponent())
 			{
 				// Listen for the dead tag on each enemy
-				SpawnedEnemy->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
-					FGameplayTag::RequestGameplayTag(FName("Combat.Dead")),
-					EGameplayTagEventType::NewOrRemoved)
-					.AddUObject(this, &AMSC_EnemySpawner::OnDeadTagChanged);
-				
+				auto EventHandle = SpawnedEnemy->GetAbilitySystemComponent()->RegisterGameplayTagEvent(
+					                               FGameplayTag::RequestGameplayTag(FName("Combat.Dead")),
+					                               EGameplayTagEventType::NewOrRemoved)
+				                               .AddLambda([this, SpawnedEnemy](
+					                               const FGameplayTag Tag, int32 NewCount)
+					                               {
+						                               if (NewCount > 0)
+						                               {
+							                               FTimerHandle DespawnTimer;
+							                               GetWorldTimerManager().SetTimer(
+								                               DespawnTimer, [SpawnedEnemy]()
+								                               {
+									                               if (IsValid(SpawnedEnemy))
+									                               {
+										                               SpawnedEnemy->Destroy();
+									                               }
+								                               }, 3.0f, false);
+
+							                               CurrentlyAlive--;
+
+							                               if (CurrentlyAlive <= 0)
+							                               {
+								                               GetWorld()->GetTimerManager().SetTimer(
+									                               SpawnTimer, this, &AMSC_EnemySpawner::SpawnEnemy,
+									                               RespawnDelay);
+							                               }
+						                               }
+					                               }
+				                               );
 				CurrentlyAlive++;
 			}
-		}
-	}
-}
-
-
-void AMSC_EnemySpawner::OnDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
-{
-	if (NewCount > 0)
-	{
-		CurrentlyAlive--;
-	
-		if (CurrentlyAlive <= 0)
-		{
-			GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &AMSC_EnemySpawner::SpawnEnemy, RespawnDelay);
 		}
 	}
 }
