@@ -53,6 +53,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Combat", meta = (ClampMin = 0.1f))
 	float PlayerAttackTimeoutSeconds = 5.0f;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsPlayerAttacking = false;
+	
 private:
 	UFUNCTION()
 	void OnAttackCompletedForward();

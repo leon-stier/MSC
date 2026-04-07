@@ -438,5 +438,6 @@ void FStateTreeReactiveBlockTask::ExitState(FStateTreeExecutionContext& Context,
 			Enemy->MSC_AbilitySystemComponent->CancelAbilities(&BlockTags);
 		}
 		InstanceData.bBlockAbilityActive = false;
+		Enemy->bIsPlayerAttacking = false;
 	}
 }
