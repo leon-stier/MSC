@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "GameplayTagContainer.h"
+#include "CombatEventTypes.generated.h"
 
 UENUM(BlueprintType)
 enum class ECombatEventType : uint8

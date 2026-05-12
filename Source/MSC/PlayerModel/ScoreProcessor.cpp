@@ -11,6 +11,7 @@ void UScoreProcessor::Tick(float DeltaTime)
 
 	// Apply decay and duration penalties with no discrete events this tick
 	UpdateFrustrationScore(DeltaTime, 0.f);
+	UE_LOG(LogTemp, Log, TEXT("Frustration Score: %f"), Metrics.FrustrationScore);
 }
 
 void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float DiscreteEventWeight)
@@ -25,7 +26,7 @@ void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float 
 	Metrics.FrustrationScore = FMath::Max(0.f, Metrics.FrustrationScore);
 }
 
-void UScoreProcessor::ProcessEvent(const FCombatEvent& Event)
+void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 {
 	// Look up discrete event weight (w_j)
 	float EventWeight = 0.f;
@@ -130,16 +131,16 @@ void UScoreProcessor::ProcessOpportunity(ECombatEventType OpportunityType,
 	Metrics.TotalOpportunities++;
 
 	FInputOpportunityRecord& Record = Metrics.OpportunityRecords.FindOrAdd(OpportunityType);
-	Record.Total++;
+	// Record.Total++;
 
 	if (bWasActedOn)
 	{
 		Metrics.ActedOpportunities++;
-		Record.ActedOn++;
+		// Record.ActedOn++;
 	}
 	else
 	{
 		// Missed opportunity is a discrete failure event
-		ProcessEvent({ECombatEventType::MissedOpportunity});
+		ProcessTelemetryEvent({ECombatEventType::MissedOpportunity});
 	}
 }

@@ -2,6 +2,8 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "MSC/PlayerModel/CombatEventSubsystem.h"
+#include "MSC/PlayerModel/CombatEventTypes.h"
 
 UMSC_HealthAttributeSet::UMSC_HealthAttributeSet()
 {
@@ -32,8 +34,21 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 			FGameplayTagContainer DeathAbilityTagContainer;
 			DeathAbilityTagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Id.Die")));
 			GetOwningAbilitySystemComponent()->TryActivateAbilitiesByTag(DeathAbilityTagContainer);
+			
+			if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+			{
+				FCombatEvent Event;
+				Event.EventType = ECombatEventType::PlayerDied;
+				CombatEvents->ReportEvent(Event);
+			}
 		}
 		OnHealthChanged.Broadcast(this, OldValue, NewValue);
+		if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+		{
+			FCombatEvent Event;
+			Event.EventType = ECombatEventType::PlayerTookDamage;
+			CombatEvents->ReportEvent(Event);
+		}
 	} else if (Attribute == GetMaxHealthAttribute())
 	{
 		// When max health changes, broadcast OnHealthChanged so that health bars will update

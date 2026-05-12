@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "CombatMetrics.generated.h"
 
 enum class ECombatEventType : uint8;
 struct FGameplayTag;

@@ -1,6 +1,7 @@
 ﻿#include "CombatEventSubsystem.h"
 
 #include "CombatEventTypes.h"
+#include "ScoreProcessor.h"
 
 
 void UCombatEventSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -9,16 +10,18 @@ void UCombatEventSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	ScoreProcessor = NewObject<UScoreProcessor>(this);
 }
 
+void UCombatEventSubsystem::Deinitialize()
+{
+	Super::Deinitialize();
+}
+
 void UCombatEventSubsystem::ReportEvent(FCombatEvent Event)
 {
 	Event.Timestamp = GetWorld()->GetTimeSeconds();
     
-	// Maybe. Taking damage shouldn't reset inactivity
-	ResetInactivityTimer();
+	// OnCombatEvent.Broadcast(Event);
 
-	OnCombatEvent.Broadcast(Event);
-
-	ScoreProcessor->ProcessEvent(Event);
+	ScoreProcessor->ProcessTelemetryEvent(Event);
 }
 
 void UCombatEventSubsystem::ReportOpportunity(ECombatEventType OpportunityType, float WindowDuration)

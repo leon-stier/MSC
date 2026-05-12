@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "CombatEventTypes.h"
 #include "CombatMetrics.h"
+#include "ScoreProcessor.generated.h"
 
 struct FCombatMetrics;
 enum class ECombatEventType : uint8;
@@ -13,7 +14,7 @@ class UScoreProcessor : public UObject, public FTickableGameObject
     GENERATED_BODY()
 
 public:
-    void ProcessEvent(const FCombatEvent& Event);
+    void ProcessTelemetryEvent(const FCombatEvent& Event);
     void ProcessOpportunity(ECombatEventType OpportunityType, bool bWasActedOn);
 
     void ActivateInactivitySignal();
