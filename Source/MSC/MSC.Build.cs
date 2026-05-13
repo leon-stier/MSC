@@ -15,7 +15,8 @@ public class MSC : ModuleRules
 			"Engine", 
 			"InputCore", "EnhancedInput", 
 			"GameplayAbilities", "GameplayTags", "GameplayTasks", 
-			"AIModule", "StateTreeModule", "GameplayStateTreeModule" 
+			"AIModule", "StateTreeModule", "GameplayStateTreeModule", 
+			"UMG", "SlateCore", "Slate"
 		});
 
 		// Uncomment if you are using Slate UI

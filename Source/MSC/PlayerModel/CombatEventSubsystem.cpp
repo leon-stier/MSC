@@ -15,6 +15,11 @@ void UCombatEventSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+float UCombatEventSubsystem::GetFrustrationScore()
+{
+	return ScoreProcessor->GetMetrics().FrustrationScore;
+}
+
 void UCombatEventSubsystem::ReportEvent(FCombatEvent Event)
 {
 	Event.Timestamp = GetWorld()->GetTimeSeconds();

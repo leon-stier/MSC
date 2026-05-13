@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-
 #include "CombatEventSubsystem.generated.h"
 
 class UScoreProcessor;
@@ -24,6 +23,9 @@ public:
 
 		return GameInstance->GetSubsystem<UCombatEventSubsystem>();
 	}
+	
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
+	float GetFrustrationScore();
 	
 	// Single entry point for all events
 	void ReportEvent(FCombatEvent Event);
