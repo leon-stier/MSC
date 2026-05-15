@@ -47,7 +47,7 @@ private:
     TMap<ECombatEventType, float> EventWeights =
     {
         { ECombatEventType::PlayerDied,              5.f  },
-        { ECombatEventType::PlayerTookDamage,        1.f  },
+        { ECombatEventType::PlayerTookDamage,        2.f  },
         { ECombatEventType::PlayerAbilityMissed,     0.5f },
         { ECombatEventType::PlayerUnassignedInput,   0.3f },
         { ECombatEventType::MissedOpportunity,       0.8f },

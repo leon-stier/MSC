@@ -28,14 +28,20 @@ public:
 	float GetFrustrationScore();
 	
 	// Single entry point for all events
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void ReportEvent(FCombatEvent Event);
 
 	// Opportunity tracking
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void ReportOpportunity(ECombatEventType OpportunityType, float WindowDuration);
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void CloseOpportunity(ECombatEventType OpportunityType, bool bWasActedOn);
+	
 
 	// Inactivity tracking
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void StartInactivityTracking();
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void ResetInactivityTimer();
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnCombatEvent, const FCombatEvent&);

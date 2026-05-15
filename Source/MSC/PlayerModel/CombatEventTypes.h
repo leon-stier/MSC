@@ -27,7 +27,7 @@ struct FCombatEvent
 {
 	GENERATED_BODY()
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	ECombatEventType EventType;
 
 	UPROPERTY()
@@ -38,12 +38,12 @@ struct FCombatEvent
 	FGameplayTag AbilityTag;
 
 	// Extra context (damage amount, combo count etc.)
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	float Magnitude = 0.f;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	TWeakObjectPtr<AActor> Instigator;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	TWeakObjectPtr<AActor> Target;
 };

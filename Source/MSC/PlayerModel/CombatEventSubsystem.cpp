@@ -50,6 +50,10 @@ void UCombatEventSubsystem::CloseOpportunity(ECombatEventType OpportunityType, b
 	}
 }
 
+void UCombatEventSubsystem::StartInactivityTracking()
+{
+}
+
 void UCombatEventSubsystem::ResetInactivityTimer()
 {
 	GetWorld()->GetTimerManager().SetTimer(InactivityTimer, this, &UCombatEventSubsystem::OnInactivityTimerFired, InactivityThreshold, false);

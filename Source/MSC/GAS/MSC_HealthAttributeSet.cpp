@@ -35,6 +35,7 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 			DeathAbilityTagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Id.Die")));
 			GetOwningAbilitySystemComponent()->TryActivateAbilitiesByTag(DeathAbilityTagContainer);
 			
+			// TODO Report only for player, not for enemy
 			if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
 			{
 				FCombatEvent Event;

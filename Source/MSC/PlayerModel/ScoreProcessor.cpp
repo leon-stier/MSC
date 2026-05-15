@@ -11,7 +11,6 @@ void UScoreProcessor::Tick(float DeltaTime)
 
 	// Apply decay and duration penalties with no discrete events this tick
 	UpdateFrustrationScore(DeltaTime, 0.f);
-	UE_LOG(LogTemp, Log, TEXT("Frustration Score: %f"), Metrics.FrustrationScore);
 }
 
 void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float DiscreteEventWeight)
