@@ -4,6 +4,7 @@
 #include "GameplayEffectExtension.h"
 #include "MSC/PlayerModel/CombatEventSubsystem.h"
 #include "MSC/PlayerModel/CombatEventTypes.h"
+#include "MSC/Characters/Player/MSC_CharacterPlayer.h"
 
 UMSC_HealthAttributeSet::UMSC_HealthAttributeSet()
 {
@@ -34,21 +35,38 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 			FGameplayTagContainer DeathAbilityTagContainer;
 			DeathAbilityTagContainer.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Id.Die")));
 			GetOwningAbilitySystemComponent()->TryActivateAbilitiesByTag(DeathAbilityTagContainer);
-			
-			// TODO Report only for player, not for enemy
-			if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+
+			// Only report telemetry for the player-controlled character
+			if (UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent())
 			{
-				FCombatEvent Event;
-				Event.EventType = ECombatEventType::PlayerDied;
-				CombatEvents->ReportEvent(Event);
+				AActor* Avatar = ASC->GetAvatarActor();
+				if (Avatar && Avatar->IsA<AMSC_CharacterPlayer>())
+				{
+					if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+					{
+						FCombatEvent Event;
+						Event.EventType = ECombatEventType::PlayerDied;
+						CombatEvents->ReportEvent(Event);
+					}
+				}
 			}
 		}
+
 		OnHealthChanged.Broadcast(this, OldValue, NewValue);
-		if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+
+		// Only report damage telemetry for the player
+		if (UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent())
 		{
-			FCombatEvent Event;
-			Event.EventType = ECombatEventType::PlayerTookDamage;
-			CombatEvents->ReportEvent(Event);
+			AActor* Avatar = ASC->GetAvatarActor();
+			if (Avatar && Avatar->IsA<AMSC_CharacterPlayer>())
+			{
+				if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+				{
+					FCombatEvent Event;
+					Event.EventType = ECombatEventType::PlayerTookDamage;
+					CombatEvents->ReportEvent(Event);
+				}
+			}
 		}
 	} else if (Attribute == GetMaxHealthAttribute())
 	{
