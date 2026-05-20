@@ -11,6 +11,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "EnhancedInputSubsystems.h"
 #include "MSC/Characters/AI/MSC_CharacterEnemy.h"
+#include "MSC/PlayerModel/CombatEventSubsystem.h"
+#include "MSC/PlayerModel/CombatEventTypes.h"
 
 
 AMSC_CharacterPlayer::AMSC_CharacterPlayer()
@@ -207,6 +209,16 @@ void AMSC_CharacterPlayer::DoLockTarget()
 			GetLocalViewingPlayerController()->GetLocalPlayer()))
 	{
 		Subsystem->RemoveMappingContext(LookMappingContext);
+	}
+}
+
+void AMSC_CharacterPlayer::DoUnassignedInput()
+{
+	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+	{
+		FCombatEvent Event;
+		Event.EventType = ECombatEventType::PlayerUnassignedInput;
+		CombatEvents->ReportEvent(Event);
 	}
 }
 
@@ -422,6 +434,9 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		
 		// Dodge
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoDodge);
+		
+		// Unassigned Input
+		EnhancedInputComponent->BindAction(UnassignedAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoUnassignedInput);
 		
 	}
 	else

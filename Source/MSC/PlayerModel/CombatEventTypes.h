@@ -34,7 +34,7 @@ struct FCombatEvent
 	float Timestamp = 0.f;
 
 	// Which ability was involved (if any)
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 	FGameplayTag AbilityTag;
 
 	// Extra context (damage amount, combo count etc.)

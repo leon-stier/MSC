@@ -52,7 +52,11 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoLockTarget();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoUnassignedInput();
 
+	
 	UFUNCTION()
 	void HandleLockSwitchInput(const FInputActionValue& Value);
 
@@ -138,6 +142,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* LockSwitchAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* UnassignedAction;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
