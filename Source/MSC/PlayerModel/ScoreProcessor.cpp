@@ -21,7 +21,6 @@ void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float 
 
 	Metrics.FrustrationScore = DecayedScore + DiscreteEventWeight + DurationPenalty;
 
-	// Clamp to zero — frustration can't go negative
 	Metrics.FrustrationScore = FMath::Max(0.f, Metrics.FrustrationScore);
 }
 
@@ -38,7 +37,7 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 	// DeltaTime is 0 here since Tick handles the continuous part
 	UpdateFrustrationScore(0.f, EventWeight);
 
-	// Update raw metrics and proficiency
+	// Update raw metrics
 	switch (Event.EventType)
 	{
 	case ECombatEventType::PlayerDied:
@@ -55,34 +54,28 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 
 	case ECombatEventType::PlayerSuccessfulParry:
 		Metrics.SuccessfulParries++;
-		UpdateProficiency(Event.AbilityTag, true);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulBlock:
 		Metrics.SuccessfulBlocks++;
-		UpdateProficiency(Event.AbilityTag, true);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulDodge:
 		Metrics.SuccessfulDodges++;
-		UpdateProficiency(Event.AbilityTag, true);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulHit:
 		Metrics.SuccessfulHits++;
-		UpdateProficiency(Event.AbilityTag, true);
 		DeactivateInactivitySignal();
 		break;
 
 	case ECombatEventType::PlayerAbilitySuccessful:
 		Metrics.AbilityActivations.FindOrAdd(Event.AbilityTag)++;
-		UpdateProficiency(Event.AbilityTag, true);
 		break;
 
 	case ECombatEventType::PlayerAbilityMissed:
 		Metrics.AbilitiesMissed++;
 		Metrics.AbilityMisses.FindOrAdd(Event.AbilityTag)++;
-		UpdateProficiency(Event.AbilityTag, false);
 		break;
 
 	case ECombatEventType::PlayerInactive:
@@ -93,6 +86,7 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 		Metrics.UnassignedInputs++;
 		break;
 
+ 
 	default: break;
 	}
 }
@@ -124,22 +118,20 @@ void UScoreProcessor::DeactivateInactivitySignal()
 	InactivitySignal.Duration = 0.f;
 }
 
-void UScoreProcessor::ProcessOpportunity(ECombatEventType OpportunityType,
-                                         bool bWasActedOn)
+void UScoreProcessor::ProcessOpportunity(ECombatEventType OpportunityType, bool bWasActedOn)
 {
 	Metrics.TotalOpportunities++;
 
 	FInputOpportunityRecord& Record = Metrics.OpportunityRecords.FindOrAdd(OpportunityType);
-	// Record.Total++;
+	Record.TotalOpportunities++;
 
 	if (bWasActedOn)
 	{
 		Metrics.ActedOpportunities++;
-		// Record.ActedOn++;
+		Record.ActedOn++;
 	}
 	else
 	{
-		// Missed opportunity is a discrete failure event
-		ProcessTelemetryEvent({ECombatEventType::MissedOpportunity});
+		ProcessTelemetryEvent({ECombatEventType::PlayerAbilityMissed});
 	}
 }

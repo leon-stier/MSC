@@ -65,6 +65,8 @@ public:
 	
 	UFUNCTION()
 	void UpdateLockOnRotation(float DetlaTime);
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	UFUNCTION(BlueprintCallable)
 	bool RequestAttackToken();
@@ -146,8 +148,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* UnassignedAction;
 	
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -155,6 +155,11 @@ protected:
 	void Look(const FInputActionValue& Value);
 	
 private:
+	void UpdateContinuousMovementTracking(float DeltaSeconds);
+	bool ShouldTrackContinuousMovement() const;
+	void InterruptContinuousMovementTracking();
+	void ResetContinuousMovementTracking();
+
 	void OnTargetDied(const FGameplayTag Tag, int32 NewCount);
 	
 	void UnlockTarget();
@@ -173,6 +178,17 @@ private:
 	
 	UPROPERTY()
 	AMSC_CharacterEnemy* HitTarget;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Telemetry", meta = (ClampMin = "0.0"))
+	float ContinuousMovementMinSpeed = 10.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Telemetry", meta = (ClampMin = "0.0"))
+	float ContinuousMovementThresholdSeconds = 3.0f;
+
+	float ContinuousMovementElapsed = 0.0f;
+
+	bool bContinuousMovementInterrupted = false;
+	bool bContinuousMovementInactiveReported = false;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* LookMappingContext;

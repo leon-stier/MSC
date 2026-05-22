@@ -49,13 +49,13 @@ struct FInputOpportunityRecord
 
 	int32 TotalOpportunities = 0;
 
-	int32 TimesUsed = 0;
+	int32 ActedOn = 0;
 
 	// Current usage rate [0,1]
 	float GetUsageRate() const
 	{
 		return TotalOpportunities > 0 
-			? static_cast<float>(TimesUsed) / TotalOpportunities 
+			? static_cast<float>(ActedOn) / TotalOpportunities 
 			: 0.f;
 	}
 };

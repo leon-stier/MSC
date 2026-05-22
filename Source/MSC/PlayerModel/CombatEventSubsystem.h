@@ -40,9 +40,7 @@ public:
 
 	// Inactivity tracking
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
-	void StartInactivityTracking();
-	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
-	void ResetInactivityTimer();
+	void StopInactivityTracking();
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnCombatEvent, const FCombatEvent&);
 	FOnCombatEvent OnCombatEvent;
@@ -51,14 +49,10 @@ public:
 	virtual void Deinitialize() override;
 private:
 
-	void OnInactivityTimerFired();
-
 	UPROPERTY()
 	UScoreProcessor* ScoreProcessor;
 
 	// Tracks open opportunities and when they were created
 	TMap<ECombatEventType, float> OpenOpportunities;
 
-	FTimerHandle InactivityTimer;
-	float InactivityThreshold = 3.f;
 };

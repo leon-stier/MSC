@@ -10,7 +10,6 @@ enum class ECombatEventType : uint8
 	PlayerTookDamage,
 	PlayerAbilityMissed,        // missed timing window or enemy
 	PlayerUnassignedInput,
-	MissedOpportunity,
 	
 	PlayerSuccessfulCombo,
 	PlayerSuccessfulHit,

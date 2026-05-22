@@ -50,7 +50,6 @@ private:
         { ECombatEventType::PlayerTookDamage,        2.f  },
         { ECombatEventType::PlayerAbilityMissed,     0.5f },
         { ECombatEventType::PlayerUnassignedInput,   0.3f },
-        { ECombatEventType::MissedOpportunity,       0.8f },
 
         // Success events have negative weights
         { ECombatEventType::PlayerSuccessfulCombo,  -2.f  },

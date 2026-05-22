@@ -52,11 +52,70 @@ AMSC_CharacterPlayer::AMSC_CharacterPlayer()
 	
 }
 
+bool AMSC_CharacterPlayer::ShouldTrackContinuousMovement() const
+{
+	if (HitTarget == nullptr)
+	{
+		if (GetCharacterMovement())
+		{
+			return GetVelocity().SizeSquared2D() > FMath::Square(ContinuousMovementMinSpeed);
+		}
+	}
+
+	return false;
+}
+
+void AMSC_CharacterPlayer::UpdateContinuousMovementTracking(float DeltaSeconds)
+{
+	if (!ShouldTrackContinuousMovement())
+	{
+		ResetContinuousMovementTracking();
+		return;
+	}
+
+	if (bContinuousMovementInterrupted)
+	{
+		return;
+	}
+
+	ContinuousMovementElapsed += DeltaSeconds;
+
+	if (!bContinuousMovementInactiveReported && ContinuousMovementElapsed >= ContinuousMovementThresholdSeconds)
+	{
+		if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+		{
+			FCombatEvent Event;
+			Event.EventType = ECombatEventType::PlayerInactive;
+			CombatEvents->ReportEvent(Event);
+			bContinuousMovementInactiveReported = true;
+		}
+	}
+}
+
+void AMSC_CharacterPlayer::ResetContinuousMovementTracking()
+{
+	ContinuousMovementElapsed = 0.0f;
+	bContinuousMovementInactiveReported = false;
+	bContinuousMovementInterrupted = false;
+
+	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+	{
+		CombatEvents->StopInactivityTracking();
+	}
+}
+
+void AMSC_CharacterPlayer::InterruptContinuousMovementTracking()
+{
+	ResetContinuousMovementTracking();
+	bContinuousMovementInterrupted = true;
+}
+
 void AMSC_CharacterPlayer::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	
 	UpdateLockOnRotation(DeltaSeconds);
+	UpdateContinuousMovementTracking(DeltaSeconds);
 }
 
 void AMSC_CharacterPlayer::DoMove(float Right, float Forward)
@@ -101,6 +160,7 @@ void AMSC_CharacterPlayer::DoJumpEnd()
 
 void AMSC_CharacterPlayer::DoPunch()
 {
+	InterruptContinuousMovementTracking();
 	if (PunchAbility && MSC_AbilitySystemComponent)
 	{
 		MSC_AbilitySystemComponent->TryActivateAbilityByClass(PunchAbility);
@@ -129,6 +189,7 @@ void AMSC_CharacterPlayer::DoBlockEnd()
 
 void AMSC_CharacterPlayer::DoParry()
 {
+	InterruptContinuousMovementTracking();
 	if (MSC_AbilitySystemComponent && ParryAbility)
 	{
 		MSC_AbilitySystemComponent->TryActivateAbilityByClass(ParryAbility);
@@ -137,6 +198,7 @@ void AMSC_CharacterPlayer::DoParry()
 
 void AMSC_CharacterPlayer::DoDodge()
 {
+	InterruptContinuousMovementTracking();
 	if (MSC_AbilitySystemComponent && DodgeAbility)
 	{
 		MSC_AbilitySystemComponent->TryActivateAbilityByClass(DodgeAbility);
@@ -145,6 +207,8 @@ void AMSC_CharacterPlayer::DoDodge()
 
 void AMSC_CharacterPlayer::DoLockTarget()
 {
+	InterruptContinuousMovementTracking();
+
 	if (HitTarget)
 	{
 		UnlockTarget();
@@ -214,6 +278,8 @@ void AMSC_CharacterPlayer::DoLockTarget()
 
 void AMSC_CharacterPlayer::DoUnassignedInput()
 {
+	InterruptContinuousMovementTracking();
+
 	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
 	{
 		FCombatEvent Event;
@@ -224,6 +290,8 @@ void AMSC_CharacterPlayer::DoUnassignedInput()
 
 void AMSC_CharacterPlayer::HandleLockSwitchInput(const FInputActionValue& Value)
 {
+	InterruptContinuousMovementTracking();
+
 	if (!HitTarget || !GetWorld())
 	{
 		return;

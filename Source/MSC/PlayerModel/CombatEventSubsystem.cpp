@@ -50,19 +50,10 @@ void UCombatEventSubsystem::CloseOpportunity(ECombatEventType OpportunityType, b
 	}
 }
 
-void UCombatEventSubsystem::StartInactivityTracking()
+void UCombatEventSubsystem::StopInactivityTracking()
 {
-}
-
-void UCombatEventSubsystem::ResetInactivityTimer()
-{
-	GetWorld()->GetTimerManager().SetTimer(InactivityTimer, this, &UCombatEventSubsystem::OnInactivityTimerFired, InactivityThreshold, false);
-}
-
-void UCombatEventSubsystem::OnInactivityTimerFired()
-{
-	FCombatEvent Event;
-	Event.EventType = ECombatEventType::PlayerInactive;
-	Event.Magnitude = InactivityThreshold;
-	ReportEvent(Event);
+	if (ScoreProcessor)
+	{
+		ScoreProcessor->DeactivateInactivitySignal();
+	}
 }
