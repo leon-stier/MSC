@@ -1,9 +1,9 @@
 ﻿#pragma once
-
+#include "CombatMetrics.h"
 #include "CombatEventSubsystem.generated.h"
 
 class UScoreProcessor;
-enum class ECombatEventType : uint8;
+enum class ECombatSituation : uint8;
 struct FCombatEvent;
 
 UCLASS()
@@ -27,15 +27,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	float GetFrustrationScore();
 	
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
+	float GetMetricValue(FGameplayTag MetricOrAbilityTag) const;
+	
 	// Single entry point for all events
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void ReportEvent(FCombatEvent Event);
 
 	// Opportunity tracking
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
-	void ReportOpportunity(ECombatEventType OpportunityType, float WindowDuration);
+	void ReportOpportunity(ECombatSituation OpportunityType, float WindowDuration);
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
-	void CloseOpportunity(ECombatEventType OpportunityType, bool bWasActedOn);
+	void CloseOpportunity(ECombatSituation OpportunityType, bool bWasActedOn);
 	
 
 	// Inactivity tracking
@@ -53,6 +56,6 @@ private:
 	UScoreProcessor* ScoreProcessor;
 
 	// Tracks open opportunities and when they were created
-	TMap<ECombatEventType, float> OpenOpportunities;
+	TMap<ECombatSituation, float> OpenOpportunities;
 
 };

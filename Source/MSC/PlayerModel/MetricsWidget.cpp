@@ -1,12 +1,40 @@
 ﻿#include "MetricsWidget.h"
 
-void UCombatMetricsWidget::AddDataPoint(float FrustrationScore)
+void UCombatMetricsWidget::AddDataPoint(FName DatasetId, float Value)
 {
-    FrustrationHistory.Add(FrustrationScore);
-    if (FrustrationHistory.Num() > MaxHistorySize)
-    {
-        FrustrationHistory.RemoveAt(0);
-    }
+  FGraphDataset& Dataset = Datasets.FindOrAdd(DatasetId);
+  if (Dataset.MaxValue <= Dataset.MinValue)
+  {
+    Dataset.MinValue = DefaultMinValue;
+    Dataset.MaxValue = DefaultMaxValue;
+  }
+
+  Dataset.Values.Add(Value);
+  if (Dataset.Values.Num() > MaxHistorySize)
+  {
+    Dataset.Values.RemoveAt(0);
+  }
+}
+
+void UCombatMetricsWidget::SetDatasetStyle(FName DatasetId, FLinearColor Color, float MinValue, float MaxValue)
+{
+  FGraphDataset& Dataset = Datasets.FindOrAdd(DatasetId);
+  Dataset.Color = Color;
+  Dataset.MinValue = MinValue;
+  Dataset.MaxValue = MaxValue;
+}
+
+void UCombatMetricsWidget::ClearDataset(FName DatasetId)
+{
+  if (FGraphDataset* Dataset = Datasets.Find(DatasetId))
+  {
+    Dataset->Values.Reset();
+  }
+}
+
+void UCombatMetricsWidget::ClearAllDatasets()
+{
+  Datasets.Reset();
 }
 
 int32 UCombatMetricsWidget::NativePaint(
@@ -32,56 +60,37 @@ void UCombatMetricsWidget::DrawGraph(
     FSlateWindowElementList& OutDrawElements,
     int32 LayerId) const
 {
-    if (FrustrationHistory.Num() < 2) return;
-
 	FVector2D WidgetSize = AllottedGeometry.GetLocalSize();
-	
-	FPaintGeometry PaintGeometry = AllottedGeometry.ToPaintGeometry(
-		FVector2D::ZeroVector,
-		WidgetSize
-	);
+  const FPaintGeometry PaintGeometry = AllottedGeometry.ToPaintGeometry();
 
+  for (const TPair<FName, FGraphDataset>& Pair : Datasets)
+  {
+    const FGraphDataset& Dataset = Pair.Value;
+    if (Dataset.Values.Num() < 2) continue;
+
+    const float Range = FMath::Max(Dataset.MaxValue - Dataset.MinValue, KINDA_SMALL_NUMBER);
     TArray<FVector2D> Points;
-    Points.Reserve(FrustrationHistory.Num());
+    Points.Reserve(Dataset.Values.Num());
 
-    for (int32 i = 0; i < FrustrationHistory.Num(); i++)
+    for (int32 i = 0; i < Dataset.Values.Num(); i++)
     {
-        float X = (float)i / (MaxHistorySize - 1) * WidgetSize.X;
-
-        float NormalizedValue = FMath::Clamp(
-            (FrustrationHistory[i] - MinValue) / (MaxValue - MinValue),
-            0.f, 1.f);
-        float Y = WidgetSize.Y * (1.f - NormalizedValue);
-
-        Points.Add(FVector2D(X, Y));
+      const float X = (float)i / (MaxHistorySize - 1) * WidgetSize.X;
+      const float NormalizedValue = FMath::Clamp(
+        (Dataset.Values[i] - Dataset.MinValue) / Range,
+        0.f, 1.f);
+      const float Y = WidgetSize.Y * (1.f - NormalizedValue);
+      Points.Add(FVector2D(X, Y));
     }
 
     FSlateDrawElement::MakeLines(
-        OutDrawElements,
-        LayerId,
-        PaintGeometry,
-        Points,
-        ESlateDrawEffect::None,
-        FLinearColor::Red,
-        true,   // bAntialias
-        2.f     // thickness
+      OutDrawElements,
+      LayerId,
+      PaintGeometry,
+      Points,
+      ESlateDrawEffect::None,
+      Dataset.Color,
+      true,   // bAntialias
+      2.f     // thickness
     );
-
-    // Draw a baseline at zero
-    TArray<FVector2D> Baseline;
-    float BaselineY = WidgetSize.Y * (1.f - 
-        FMath::Clamp(-MinValue / (MaxValue - MinValue), 0.f, 1.f));
-    Baseline.Add(FVector2D(0.f, BaselineY));
-    Baseline.Add(FVector2D(WidgetSize.X, BaselineY));
-
-    FSlateDrawElement::MakeLines(
-        OutDrawElements,
-        LayerId,
-        AllottedGeometry.ToPaintGeometry(),
-        Baseline,
-        ESlateDrawEffect::None,
-        FLinearColor(0.3f, 0.3f, 0.3f, 1.f),
-        true,
-        1.f
-    );
+  }
 }

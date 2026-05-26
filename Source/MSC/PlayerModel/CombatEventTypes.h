@@ -21,6 +21,18 @@ enum class ECombatEventType : uint8
 	PlayerInactive,             // time spent doing nothing
 };
 
+UENUM(BlueprintType)
+enum class ECombatSituation : uint8
+{
+	NormalAttack,        // default block opportunity
+	UndodgeableAttack,   // must block or parry
+	UnblockableAttack,   // must dodge
+	ParryWindow,         // tight parry timing
+	DodgeWindow,         // tight dodge timing
+	HitWindow,           // opening to hit
+	ComboWindow          // chain input window
+};
+
 USTRUCT(BlueprintType)
 struct FCombatEvent
 {

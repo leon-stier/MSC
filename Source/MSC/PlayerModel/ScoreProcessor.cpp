@@ -2,28 +2,6 @@
 
 #include "CombatEventTypes.h"
 
-void UScoreProcessor::Tick(float DeltaTime)
-{
-	if (InactivitySignal.bActive)
-	{
-		InactivitySignal.Duration += DeltaTime;
-	}
-
-	// Apply decay and duration penalties with no discrete events this tick
-	UpdateFrustrationScore(DeltaTime, 0.f);
-}
-
-void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float DiscreteEventWeight)
-{
-	// F(t+dt) = F(t) * e^(-lambda * dt) + sum(w_j) + sum(r_k(t) * dt)
-	const float DecayedScore = Metrics.FrustrationScore * FMath::Exp(-DecayConstant * DeltaTime);
-	const float DurationPenalty = InactivitySignal.GetPenaltyRate() * DeltaTime;
-
-	Metrics.FrustrationScore = DecayedScore + DiscreteEventWeight + DurationPenalty;
-
-	Metrics.FrustrationScore = FMath::Max(0.f, Metrics.FrustrationScore);
-}
-
 void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 {
 	// Look up discrete event weight (w_j)
@@ -91,16 +69,19 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 	}
 }
 
-void UScoreProcessor::UpdateProficiency(const FGameplayTag& AbilityTag, bool bSuccess)
+void UScoreProcessor::ProcessOpportunity(ECombatSituation OpportunityType, bool bWasActedOn)
 {
-	if (!AbilityTag.IsValid()) return;
+	const FGameplayTag ActionTag = GetOpportunityActionTag(OpportunityType);
+	if (!ActionTag.IsValid())
+	{
+		return;
+	}
 
-	float& Proficiency = Metrics.InputProficiency.FindOrAdd(AbilityTag, 0.5f);
+	float& Proficiency = Metrics.InputProficiency.FindOrAdd(ActionTag, 0.5f);
+	const float Outcome = bWasActedOn ? 1.f : 0.f;
 
-	// EWMA: P(t+1) = alpha * outcome + (1 - alpha) * P(t)
-	// outcome is 1.0 for success, 0.0 for failure
-	float Outcome = bSuccess ? 1.f : 0.f;
-	Proficiency = ProficiencyAlpha * Outcome + (1.f - ProficiencyAlpha) * Proficiency;
+	// EWMA: P_i = alpha * P_i + (1 - alpha) * x_i
+	Proficiency = OpportunityAlpha * Proficiency + (1.f - OpportunityAlpha) * Outcome;
 }
 
 void UScoreProcessor::ActivateInactivitySignal()
@@ -118,20 +99,53 @@ void UScoreProcessor::DeactivateInactivitySignal()
 	InactivitySignal.Duration = 0.f;
 }
 
-void UScoreProcessor::ProcessOpportunity(ECombatEventType OpportunityType, bool bWasActedOn)
+const FCombatMetrics& UScoreProcessor::GetMetrics() const
+{ return Metrics; }
+
+void UScoreProcessor::Tick(float DeltaTime)
 {
-	Metrics.TotalOpportunities++;
-
-	FInputOpportunityRecord& Record = Metrics.OpportunityRecords.FindOrAdd(OpportunityType);
-	Record.TotalOpportunities++;
-
-	if (bWasActedOn)
+	if (InactivitySignal.bActive)
 	{
-		Metrics.ActedOpportunities++;
-		Record.ActedOn++;
+		InactivitySignal.Duration += DeltaTime;
 	}
-	else
+
+	// Apply decay and duration penalties with no discrete events this tick
+	UpdateFrustrationScore(DeltaTime, 0.f);
+}
+
+void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float DiscreteEventWeight)
+{
+	// F(t+dt) = F(t) * e^(-lambda * dt) + sum(w_j) + sum(r_k(t) * dt)
+	const float DecayedScore = Metrics.FrustrationScore * FMath::Exp(-DecayConstant * DeltaTime);
+	const float DurationPenalty = InactivitySignal.GetPenaltyRate() * DeltaTime;
+
+	Metrics.FrustrationScore = DecayedScore + DiscreteEventWeight + DurationPenalty;
+
+	Metrics.FrustrationScore = FMath::Max(0.f, Metrics.FrustrationScore);
+}
+
+FGameplayTag UScoreProcessor::GetOpportunityActionTag(ECombatSituation OpportunityType) const
+{
+	switch (OpportunityType)
 	{
-		ProcessTelemetryEvent({ECombatEventType::PlayerAbilityMissed});
+	case ECombatSituation::NormalAttack:
+	case ECombatSituation::UndodgeableAttack:
+		return FGameplayTag::RequestGameplayTag(FName("Ability.Id.Block"));
+
+	case ECombatSituation::UnblockableAttack:
+	case ECombatSituation::DodgeWindow:
+		return FGameplayTag::RequestGameplayTag(FName("Ability.Id.Dodge"));
+
+	case ECombatSituation::ParryWindow:
+		return FGameplayTag::RequestGameplayTag(FName("Ability.Id.Parry"));
+
+	case ECombatSituation::HitWindow:
+		return FGameplayTag::RequestGameplayTag(FName("Ability.Id.Hit"));
+
+	case ECombatSituation::ComboWindow:
+		return FGameplayTag::RequestGameplayTag(FName("Ability.Id.Combo"));
+
+	default:
+		return FGameplayTag();
 	}
 }

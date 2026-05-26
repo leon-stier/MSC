@@ -3,6 +3,17 @@
 
 #include "MetricsWidget.generated.h"
 
+USTRUCT()
+struct FGraphDataset
+{
+	GENERATED_BODY()
+
+	TArray<float> Values;
+	FLinearColor Color = FLinearColor::White;
+	float MinValue = 0.f;
+	float MaxValue = 1.f;
+};
+
 UCLASS()
 class UCombatMetricsWidget : public UUserWidget
 {
@@ -11,7 +22,16 @@ class UCombatMetricsWidget : public UUserWidget
 public:
 	// Call this every frame to feed new data
 	UFUNCTION(BlueprintCallable)
-	void AddDataPoint(float FrustrationScore);
+	void AddDataPoint(FName DatasetId, float Value);
+
+	UFUNCTION(BlueprintCallable)
+	void SetDatasetStyle(FName DatasetId, FLinearColor Color, float MinValue, float MaxValue);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearDataset(FName DatasetId);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearAllDatasets();
 
 protected:
 	virtual int32 NativePaint(
@@ -29,11 +49,11 @@ private:
 		FSlateWindowElementList& OutDrawElements,
 		int32 LayerId) const;
 
-	// Rolling history of values to plot
-	TArray<float> FrustrationHistory;
+	// Rolling history of values to plot by dataset id
+	TMap<FName, FGraphDataset> Datasets;
 	int32 MaxHistorySize = 300;
 
-	// Graph display range
-	float MinValue = 0.f;
-	float MaxValue = 20.f;
+	// Default graph display range for new datasets
+	float DefaultMinValue = 0.f;
+	float DefaultMaxValue = 20.f;
 };

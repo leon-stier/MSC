@@ -5,6 +5,7 @@
 
 struct FCombatMetrics;
 enum class ECombatEventType : uint8;
+enum class ECombatSituation : uint8;
 struct FCombatEvent;
 
 // ScoreProcessor.h
@@ -15,12 +16,12 @@ class UScoreProcessor : public UObject, public FTickableGameObject
 
 public:
     void ProcessTelemetryEvent(const FCombatEvent& Event);
-    void ProcessOpportunity(ECombatEventType OpportunityType, bool bWasActedOn);
+    void ProcessOpportunity(ECombatSituation OpportunityType, bool bWasActedOn);
 
     void ActivateInactivitySignal();
     void DeactivateInactivitySignal();
 
-    const FCombatMetrics& GetMetrics() const { return Metrics; }
+    const FCombatMetrics& GetMetrics() const;
 
     // FTickableGameObject
     virtual void Tick(float DeltaTime) override;
@@ -32,16 +33,16 @@ public:
 
 private:
     void UpdateFrustrationScore(float DeltaTime, float DiscreteEventWeight);
-    void UpdateProficiency(const FGameplayTag& AbilityTag, bool bSuccess);
+    FGameplayTag GetOpportunityActionTag(ECombatSituation OpportunityType) const;
 
     FCombatMetrics Metrics;
 
     // lambda: exponential decay constant
     float DecayConstant = 0.1f;
 
-    // EWMA smoothing factor for proficiency [0,1]
-    // closer to 1 = faster adaptation
-    float ProficiencyAlpha = 0.2f;
+    // EWMA smoothing factor for opportunity outcomes [0,1]
+    // higher = keeps more historical weight
+    float OpportunityAlpha = 0.8f;
 
     // Discrete event weights (w_j)
     TMap<ECombatEventType, float> EventWeights =

@@ -1,8 +1,10 @@
 ﻿#pragma once
+#include "GameplayTagContainer.h"
 
 #include "CombatMetrics.generated.h"
 
 enum class ECombatEventType : uint8;
+enum class ECombatSituation : uint8;
 struct FGameplayTag;
 
 USTRUCT()
@@ -128,7 +130,7 @@ struct FCombatMetrics
 
     TMap<FGameplayTag, int32> AbilityActivations;
     TMap<FGameplayTag, int32> AbilityMisses;
-    TMap<ECombatEventType, FInputOpportunityRecord> OpportunityRecords;
+	TMap<ECombatSituation, FInputOpportunityRecord> OpportunityRecords;
 	
 	TMap<FGameplayTag, FInputDeviationRecord> InputDeviationRecords;
 	bool bRecordingBaseline = false;

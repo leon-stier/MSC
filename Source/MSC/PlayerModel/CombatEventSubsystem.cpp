@@ -15,9 +15,33 @@ void UCombatEventSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+
 float UCombatEventSubsystem::GetFrustrationScore()
 {
 	return ScoreProcessor->GetMetrics().FrustrationScore;
+}
+
+float UCombatEventSubsystem::GetMetricValue(FGameplayTag MetricOrAbilityTag) const
+{
+	if (!ScoreProcessor)
+	{
+		return 0.f;
+	}
+
+	const FCombatMetrics& Metrics = ScoreProcessor->GetMetrics();
+	const FGameplayTag FrustrationTag = FGameplayTag::RequestGameplayTag(FName("Metric.FrustrationScore"));
+
+	if (MetricOrAbilityTag == FrustrationTag)
+	{
+		return Metrics.FrustrationScore;
+	}
+
+	if (const float* Value = Metrics.InputProficiency.Find(MetricOrAbilityTag))
+	{
+		return *Value;
+	}
+
+	return 0.f;
 }
 
 void UCombatEventSubsystem::ReportEvent(FCombatEvent Event)
@@ -29,7 +53,7 @@ void UCombatEventSubsystem::ReportEvent(FCombatEvent Event)
 	ScoreProcessor->ProcessTelemetryEvent(Event);
 }
 
-void UCombatEventSubsystem::ReportOpportunity(ECombatEventType OpportunityType, float WindowDuration)
+void UCombatEventSubsystem::ReportOpportunity(ECombatSituation OpportunityType, float WindowDuration)
 {
 	OpenOpportunities.Add(OpportunityType, GetWorld()->GetTimeSeconds());
 
@@ -41,7 +65,7 @@ void UCombatEventSubsystem::ReportOpportunity(ECombatEventType OpportunityType, 
 		},WindowDuration, false);
 }
 
-void UCombatEventSubsystem::CloseOpportunity(ECombatEventType OpportunityType, bool bWasActedOn)
+void UCombatEventSubsystem::CloseOpportunity(ECombatSituation OpportunityType, bool bWasActedOn)
 {
 	if (OpenOpportunities.Contains(OpportunityType))
 	{
