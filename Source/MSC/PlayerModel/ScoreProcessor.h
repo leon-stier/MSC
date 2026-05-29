@@ -37,6 +37,9 @@ private:
 
     FCombatMetrics Metrics;
 
+    // Max expected frustration value used to scale weights into [0,1].
+    float FrustrationScoreMax = 10.f;
+
     // lambda: exponential decay constant
     float DecayConstant = 0.1f;
 

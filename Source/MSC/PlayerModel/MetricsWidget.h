@@ -33,6 +33,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClearAllDatasets();
 
+	UPROPERTY(BlueprintReadOnly)
+	float CurrentValue;
+	
 protected:
 	virtual int32 NativePaint(
 		const FPaintArgs& Args,

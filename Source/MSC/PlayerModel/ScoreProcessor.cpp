@@ -119,9 +119,11 @@ void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float 
 	const float DecayedScore = Metrics.FrustrationScore * FMath::Exp(-DecayConstant * DeltaTime);
 	const float DurationPenalty = InactivitySignal.GetPenaltyRate() * DeltaTime;
 
-	Metrics.FrustrationScore = DecayedScore + DiscreteEventWeight + DurationPenalty;
+	const float ScaledEventWeight = DiscreteEventWeight / FrustrationScoreMax;
+	const float ScaledDurationPenalty = DurationPenalty / FrustrationScoreMax;
 
-	Metrics.FrustrationScore = FMath::Max(0.f, Metrics.FrustrationScore);
+	Metrics.FrustrationScore = DecayedScore + ScaledEventWeight + ScaledDurationPenalty;
+	Metrics.FrustrationScore = FMath::Clamp(Metrics.FrustrationScore, 0.f, 1.f);
 }
 
 FGameplayTag UScoreProcessor::GetOpportunityActionTag(ECombatSituation OpportunityType) const
