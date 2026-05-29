@@ -61,16 +61,16 @@ void UCombatEventSubsystem::ReportOpportunity(ECombatSituation OpportunityType, 
 	FTimerHandle OpportunityTimer;
 	GetWorld()->GetTimerManager().SetTimer(OpportunityTimer,[this, OpportunityType]()
 		{
-			CloseOpportunity(OpportunityType, false);
+			CloseOpportunity(OpportunityType, FGameplayTag());
 		},WindowDuration, false);
 }
 
-void UCombatEventSubsystem::CloseOpportunity(ECombatSituation OpportunityType, bool bWasActedOn)
+void UCombatEventSubsystem::CloseOpportunity(ECombatSituation OpportunityType, FGameplayTag ActedAbilityTag)
 {
 	if (OpenOpportunities.Contains(OpportunityType))
 	{
 		OpenOpportunities.Remove(OpportunityType);
-		ScoreProcessor->ProcessOpportunity(OpportunityType, bWasActedOn);
+		ScoreProcessor->ProcessOpportunity(OpportunityType, ActedAbilityTag);
 	}
 }
 

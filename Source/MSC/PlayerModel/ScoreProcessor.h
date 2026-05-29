@@ -16,7 +16,7 @@ class UScoreProcessor : public UObject, public FTickableGameObject
 
 public:
     void ProcessTelemetryEvent(const FCombatEvent& Event);
-    void ProcessOpportunity(ECombatSituation OpportunityType, bool bWasActedOn);
+    void ProcessOpportunity(ECombatSituation OpportunityType, FGameplayTag ActedAbilityTag);
 
     void ActivateInactivitySignal();
     void DeactivateInactivitySignal();
@@ -33,7 +33,8 @@ public:
 
 private:
     void UpdateFrustrationScore(float DeltaTime, float DiscreteEventWeight);
-    FGameplayTag GetOpportunityActionTag(ECombatSituation OpportunityType) const;
+    void ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Outcome);
+    TArray<FGameplayTag> GetOpportunityActionTags(ECombatSituation OpportunityType) const;
 
     FCombatMetrics Metrics;
 

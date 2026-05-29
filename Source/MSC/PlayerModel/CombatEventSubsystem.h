@@ -38,7 +38,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void ReportOpportunity(ECombatSituation OpportunityType, float WindowDuration);
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
-	void CloseOpportunity(ECombatSituation OpportunityType, bool bWasActedOn);
+	void CloseOpportunity(ECombatSituation OpportunityType, FGameplayTag ActedAbilityTag);
 	
 
 	// Inactivity tracking
