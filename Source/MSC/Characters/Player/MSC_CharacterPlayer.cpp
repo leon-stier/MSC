@@ -94,13 +94,22 @@ void AMSC_CharacterPlayer::UpdateContinuousMovementTracking(float DeltaSeconds)
 
 void AMSC_CharacterPlayer::ResetContinuousMovementTracking()
 {
+	const bool bWasContinuousMovementReported = bContinuousMovementInactiveReported;
+
 	ContinuousMovementElapsed = 0.0f;
 	bContinuousMovementInactiveReported = false;
 	bContinuousMovementInterrupted = false;
 
 	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
 	{
-		CombatEvents->StopInactivityTracking();
+		const bool bIsBlocking = MSC_AbilitySystemComponent
+			? MSC_AbilitySystemComponent->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("Combat.Blocking")))
+			: false;
+
+		if (bWasContinuousMovementReported && !bIsBlocking)
+		{
+			CombatEvents->StopInactivityTracking();
+		}
 	}
 }
 
