@@ -177,6 +177,21 @@ void AMSC_CharacterPlayer::DoPunch()
 	}
 }
 
+void AMSC_CharacterPlayer::DoChargedPunchStart()
+{
+	InterruptContinuousMovementTracking();
+	if (ChargedPunchAbility && MSC_AbilitySystemComponent)
+	{
+		MSC_AbilitySystemComponent->TryActivateAbilityByClass(ChargedPunchAbility);
+	}
+}
+
+void AMSC_CharacterPlayer::DoChargedPunchEnd()
+{
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(FName("Event.StopCharge")), FGameplayEventData());
+}
+
+
 void AMSC_CharacterPlayer::DoBlockStart()
 {
 	if (MSC_AbilitySystemComponent && BlockAbility)
@@ -501,6 +516,10 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		
 		// Punch
 		EnhancedInputComponent->BindAction(PunchAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoPunch);
+		
+		EnhancedInputComponent->BindAction(ChargedPunchAction, ETriggerEvent::Started, this, &AMSC_CharacterPlayer::DoChargedPunchStart);
+		EnhancedInputComponent->BindAction(ChargedPunchAction, ETriggerEvent::Completed, this, &AMSC_CharacterPlayer::DoChargedPunchEnd);
+		
 		
 		// Block
 		EnhancedInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &AMSC_CharacterPlayer::DoBlockStart);

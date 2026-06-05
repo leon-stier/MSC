@@ -39,6 +39,12 @@ public:
 	virtual void DoPunch();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoChargedPunchStart();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoChargedPunchEnd();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoBlockStart();
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
@@ -90,6 +96,9 @@ public:
 	TSubclassOf<UGameplayAbility> PunchAbility;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
+	TSubclassOf<UGameplayAbility> ChargedPunchAbility;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<UGameplayAbility> BlockAbility;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
@@ -129,6 +138,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* PunchAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* ChargedPunchAction;
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* BlockAction;
