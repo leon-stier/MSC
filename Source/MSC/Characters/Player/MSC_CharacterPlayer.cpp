@@ -172,8 +172,9 @@ void AMSC_CharacterPlayer::DoPunch()
 	InterruptContinuousMovementTracking();
 	if (PunchAbility && MSC_AbilitySystemComponent)
 	{
-		MSC_AbilitySystemComponent->TryActivateAbilityByClass(PunchAbility);
+		auto result = MSC_AbilitySystemComponent->TryActivateAbilityByClass(PunchAbility);
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(FName("Event.ContinueCombo.Input")), FGameplayEventData());
+		if (result) UCombatEventSubsystem::Get(GetWorld())->CloseOpportunity(ECombatSituation::HitWindow, FGameplayTag::RequestGameplayTag(FName("Ability.Id.Hit")));
 	}
 }
 

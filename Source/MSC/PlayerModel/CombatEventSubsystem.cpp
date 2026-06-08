@@ -80,6 +80,8 @@ void UCombatEventSubsystem::ReportOpportunity(ECombatSituation OpportunityType, 
 		}
 	}
 
+	if (WindowDuration <= 0.f) return;
+	
 	// Auto-close the opportunity after the window expires
 	FTimerHandle OpportunityTimer;
 	GetWorld()->GetTimerManager().SetTimer(OpportunityTimer,[this, OpportunityType]()
