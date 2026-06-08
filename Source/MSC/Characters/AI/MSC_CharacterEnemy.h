@@ -44,7 +44,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Abilities")
 	TSubclassOf<UGameplayAbility> BlockAbility;
-	
+	 
 	FOnAttackCompletedNative OnAttackCompletedNative;
 	
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
