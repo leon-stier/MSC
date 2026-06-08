@@ -2,6 +2,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "Kismet/GameplayStatics.h"
 #include "MSC/PlayerModel/CombatEventSubsystem.h"
 #include "MSC/PlayerModel/CombatEventTypes.h"
 #include "MSC/Characters/Player/MSC_CharacterPlayer.h"
@@ -47,6 +48,7 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 						FCombatEvent Event;
 						Event.EventType = ECombatEventType::PlayerDied;
 						CombatEvents->ReportEvent(Event);
+						Cast<AMSC_CharacterPlayer>(Avatar)->HandleDeath();
 					}
 				}
 			}

@@ -25,6 +25,12 @@ public:
 	}
 	
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
+	void FreezeScores();
+	
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
+	void UnfreezeScores();
+	
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	float GetFrustrationScore();
 	
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
@@ -51,7 +57,8 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 private:
-
+	bool bIsFrozen = false;
+	
 	UPROPERTY()
 	UScoreProcessor* ScoreProcessor;
 

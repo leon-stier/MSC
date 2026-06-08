@@ -1,6 +1,7 @@
 ﻿#include "MSC_EnemySpawner.h"
 
 #include "AbilitySystemComponent.h"
+#include "EngineUtils.h"
 #include "GameplayTagContainer.h"
 #include "MSC_CharacterEnemy.h"
 #include "Components/ArrowComponent.h"
@@ -25,11 +26,12 @@ AMSC_EnemySpawner::AMSC_EnemySpawner()
 	SpawnDirection->SetupAttachment(RootComponent);
 }
 
+
 void AMSC_EnemySpawner::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &AMSC_EnemySpawner::SpawnEnemy, InitialSpawnDelay);
+	Start();
 }
 
 void AMSC_EnemySpawner::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -37,6 +39,25 @@ void AMSC_EnemySpawner::EndPlay(EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 
 	GetWorld()->GetTimerManager().ClearTimer(SpawnTimer);
+}
+
+
+void AMSC_EnemySpawner::Start()
+{
+	GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &AMSC_EnemySpawner::SpawnEnemy, InitialSpawnDelay);
+}
+
+void AMSC_EnemySpawner::ResetAll() const
+{
+	TActorIterator<AMSC_CharacterEnemy> It(GetWorld());
+	for (; It; ++It)
+	{
+		AMSC_CharacterEnemy* Enemy = *It;
+		if (IsValid(Enemy))
+		{
+			Enemy->Destroy();
+		}
+	}
 }
 
 void AMSC_EnemySpawner::SpawnEnemy()

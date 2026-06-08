@@ -10,16 +10,17 @@ class UArrowComponent;
 UCLASS(abstract)
 class MSC_API AMSC_EnemySpawner : public AActor
 {
-	
+public:
 	GENERATED_BODY()
 	
 	AMSC_EnemySpawner();
 	
-	/** Initialization */
-	virtual void BeginPlay() override;
-
-	/** Cleanup */
-	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+	void Start();
+	
+	void ResetAll() const;
+	
+	/** Spawn an enemy and subscribe to its death event */
+	void SpawnEnemy();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCapsuleComponent* SpawnCapsule;
@@ -28,8 +29,13 @@ class MSC_API AMSC_EnemySpawner : public AActor
 	UArrowComponent* SpawnDirection;
 	
 protected:
-	/** Spawn an enemy and subscribe to its death event */
-	void SpawnEnemy();
+	/** Initialization */
+	virtual void BeginPlay() override;
+
+	/** Cleanup */
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+	
+
 
 	void OnDeadTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	

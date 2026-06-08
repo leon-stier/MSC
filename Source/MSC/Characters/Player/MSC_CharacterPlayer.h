@@ -19,6 +19,9 @@ public:
 	AMSC_CharacterPlayer();
 	
 	virtual void Tick(float DeltaSeconds) override;
+	
+	void HandleDeath();
+	
 	/** Handles move inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
@@ -167,6 +170,12 @@ protected:
 	void Look(const FInputActionValue& Value);
 	
 private:
+	void OnRespawnTimerComplete();
+	FTimerHandle RespawnTimer;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Respawn")
+	TSubclassOf<AMSC_CharacterPlayer> PlayerClass;
+	
 	void UpdateContinuousMovementTracking(float DeltaSeconds);
 	bool ShouldTrackContinuousMovement() const;
 	void InterruptContinuousMovementTracking();

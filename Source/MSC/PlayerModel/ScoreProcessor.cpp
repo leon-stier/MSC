@@ -4,6 +4,7 @@
 
 void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 {
+	if (bIsFrozen) return;
 	// Look up discrete event weight (w_j)
 	float EventWeight = 0.f;
 	if (const float* Weight = EventWeights.Find(Event.EventType))
@@ -71,6 +72,7 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 
 void UScoreProcessor::ProcessOpportunity(ECombatSituation OpportunityType, FGameplayTag ActedAbilityTag)
 {
+	if (bIsFrozen) return;
 	const TArray<FGameplayTag> ActionTags = GetOpportunityActionTags(OpportunityType);
 	if (ActionTags.IsEmpty())
 	{
@@ -154,6 +156,12 @@ void UScoreProcessor::Tick(float DeltaTime)
 {
 	if (InactivitySignal.bActive)
 	{
+		if (bIsFrozen)
+		{
+			InactivitySignal.bActive = false;
+			InactivitySignal.Duration = 0.f;
+			return;
+		}
 		InactivitySignal.Duration += DeltaTime;
 	}
 
@@ -163,6 +171,7 @@ void UScoreProcessor::Tick(float DeltaTime)
 
 void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float DiscreteEventWeight)
 {
+	if (bIsFrozen) return;
 	// F(t+dt) = F(t) * e^(-lambda * dt) + sum(w_j) + sum(r_k(t) * dt)
 	const float DecayedScore = Metrics.FrustrationScore * FMath::Exp(-DecayConstant * DeltaTime);
 	const float DurationPenalty = InactivitySignal.GetPenaltyRate() * DeltaTime;

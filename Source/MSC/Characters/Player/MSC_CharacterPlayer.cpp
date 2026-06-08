@@ -9,7 +9,9 @@
 #include "AbilitySystemComponent.h"
 #include "MSC/GAS/MSC_AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "EngineUtils.h"
 #include "EnhancedInputSubsystems.h"
+#include "Kismet/GameplayStatics.h"
 #include "MSC/Characters/AI/MSC_CharacterEnemy.h"
 #include "MSC/PlayerModel/CombatEventSubsystem.h"
 #include "MSC/PlayerModel/CombatEventTypes.h"
@@ -127,6 +129,34 @@ void AMSC_CharacterPlayer::Tick(float DeltaSeconds)
 	UpdateContinuousMovementTracking(DeltaSeconds);
 }
 
+void AMSC_CharacterPlayer::HandleDeath()
+{
+	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+	{
+		CombatEvents->FreezeScores();
+	}
+	GetWorldTimerManager().SetTimer(RespawnTimer, this,
+		&AMSC_CharacterPlayer::OnRespawnTimerComplete,
+		0, false);
+}
+
+void AMSC_CharacterPlayer::OnRespawnTimerComplete()
+{
+	TActorIterator<AMSC_CharacterEnemy> It(GetWorld());
+	for (; It; ++It)
+	{
+		AMSC_CharacterEnemy* Enemy = *It;
+		if (IsValid(Enemy))
+		{
+			Enemy->Destroy();
+		}
+	}	
+	AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(
+		UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+	Player->Destroy();
+	GetWorld()->SpawnActor(PlayerClass);
+}
 void AMSC_CharacterPlayer::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
@@ -559,6 +589,8 @@ void AMSC_CharacterPlayer::Look(const FInputActionValue& Value)
 	// route the input
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
 }
+
+
 
 void AMSC_CharacterPlayer::OnTargetDied(const FGameplayTag Tag, int32 NewCount)
 {

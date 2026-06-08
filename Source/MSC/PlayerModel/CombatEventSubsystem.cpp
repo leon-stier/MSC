@@ -19,6 +19,18 @@ void UCombatEventSubsystem::Deinitialize()
 }
 
 
+void UCombatEventSubsystem::FreezeScores()
+{
+	bIsFrozen = true;
+	ScoreProcessor->bIsFrozen = true;
+}
+
+void UCombatEventSubsystem::UnfreezeScores()
+{
+	bIsFrozen = false;
+	ScoreProcessor->bIsFrozen = true;
+}
+
 float UCombatEventSubsystem::GetFrustrationScore()
 {
 	return ScoreProcessor->GetMetrics().FrustrationScore;

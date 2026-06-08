@@ -30,6 +30,8 @@ public:
     { 
         RETURN_QUICK_DECLARE_CYCLE_STAT(UScoreProcessor, STATGROUP_Tickables); 
     }
+	
+	bool bIsFrozen = false;
 
 private:
     void UpdateFrustrationScore(float DeltaTime, float DiscreteEventWeight);
