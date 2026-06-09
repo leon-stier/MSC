@@ -1,11 +1,13 @@
 ﻿#include "MSC_HealthAttributeSet.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "EngineUtils.h"
 #include "GameplayEffectExtension.h"
 #include "Kismet/GameplayStatics.h"
 #include "MSC/PlayerModel/CombatEventSubsystem.h"
 #include "MSC/PlayerModel/CombatEventTypes.h"
 #include "MSC/Characters/Player/MSC_CharacterPlayer.h"
+#include "MSC/Characters/Player/RespawnManager.h"
 
 UMSC_HealthAttributeSet::UMSC_HealthAttributeSet()
 {
@@ -48,7 +50,14 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 						FCombatEvent Event;
 						Event.EventType = ECombatEventType::PlayerDied;
 						CombatEvents->ReportEvent(Event);
-						Cast<AMSC_CharacterPlayer>(Avatar)->HandleDeath();
+						
+						TActorIterator<ARespawnManager> It(GetOwningActor()->GetWorld());
+						UE_LOG(LogTemp, Warning, TEXT("Did I get the RespawnManager?"));
+						
+						if (It)
+						{
+							It->TriggerRespawn();
+						}
 					}
 				}
 			}

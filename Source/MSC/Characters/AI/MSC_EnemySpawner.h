@@ -17,7 +17,7 @@ public:
 	
 	void Start();
 	
-	void ResetAll() const;
+	void ResetAll();
 	
 	/** Spawn an enemy and subscribe to its death event */
 	void SpawnEnemy();
@@ -27,6 +27,13 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UArrowComponent* SpawnDirection;
+	
+	UPROPERTY()
+	TArray<AMSC_CharacterEnemy*> SpawnedEnemies;
+
+	TMap<TObjectPtr<AMSC_CharacterEnemy>, FDelegateHandle> DeadTagEventHandles;
+
+	void OnEnemyDied(AMSC_CharacterEnemy* Enemy);
 	
 protected:
 	/** Initialization */

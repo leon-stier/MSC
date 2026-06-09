@@ -131,6 +131,7 @@ void AMSC_CharacterPlayer::Tick(float DeltaSeconds)
 
 void AMSC_CharacterPlayer::HandleDeath()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Blablub"));
 	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
 	{
 		CombatEvents->FreezeScores();
@@ -155,7 +156,7 @@ void AMSC_CharacterPlayer::OnRespawnTimerComplete()
 		UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
 	Player->Destroy();
-	GetWorld()->SpawnActor(PlayerClass);
+	// GetWorld()->SpawnActor(PlayerClass);
 }
 void AMSC_CharacterPlayer::DoMove(float Right, float Forward)
 {

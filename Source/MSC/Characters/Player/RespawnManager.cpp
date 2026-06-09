@@ -23,6 +23,7 @@ void ARespawnManager::TriggerRespawn()
 
 void ARespawnManager::OnRespawnTimerComplete()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Respawn timer complete. Resetting player and enemies."));
 	ResetAllEnemies();
 	ResetPlayer();
 
