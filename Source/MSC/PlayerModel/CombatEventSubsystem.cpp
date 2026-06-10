@@ -28,7 +28,7 @@ void UCombatEventSubsystem::FreezeScores()
 void UCombatEventSubsystem::UnfreezeScores()
 {
 	bIsFrozen = false;
-	ScoreProcessor->bIsFrozen = true;
+	ScoreProcessor->bIsFrozen = false;
 }
 
 float UCombatEventSubsystem::GetFrustrationScore()

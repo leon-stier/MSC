@@ -20,10 +20,10 @@ private:
 	UPROPERTY(EditAnywhere, Category="Respawn")
 	AMSC_EnemySpawner* EnemySpawner;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Respawn")
+	UPROPERTY(EditAnywhere, Category = "Respawn")
 	float RespawnDelay = 3.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Respawn")
+	UPROPERTY(EditAnywhere, Category = "Respawn")
 	TSubclassOf<AMSC_CharacterPlayer> PlayerClass;
 
 	FTimerHandle RespawnTimer;

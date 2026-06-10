@@ -40,9 +40,20 @@ void ARespawnManager::ResetAllEnemies()
 
 void ARespawnManager::ResetPlayer()
 {
-	AMSC_CharacterPlayer* Player = Cast<AMSC_CharacterPlayer>(
-		UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
-	Player->Destroy();
-	GetWorld()->SpawnActor(PlayerClass);
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!PC) return;
+	PC->GetPawn()->Destroy();
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
+	AMSC_CharacterPlayer* NewPlayer = GetWorld()->SpawnActor<AMSC_CharacterPlayer>(PlayerClass, SpawnParams);
+
+	if (IsValid(NewPlayer))
+	{
+		PC->Possess(NewPlayer);
+	}
+	
+	EnemySpawner->Start();
 }

@@ -122,10 +122,7 @@ void AMSC_EnemySpawner::ResetAll()
 
 	// Copy the array since destroying enemies may modify it via callbacks
 	TArray<AMSC_CharacterEnemy*> EnemiesToDestroy = SpawnedEnemies;
-	
-	SpawnedEnemies.Empty();
-	DeadTagEventHandles.Empty();
-	CurrentlyAlive = 0;
+
 
 	for (AMSC_CharacterEnemy* Enemy : EnemiesToDestroy)
 	{
@@ -153,5 +150,9 @@ void AMSC_EnemySpawner::ResetAll()
 		Enemy->Destroy();
 	}
 
+		
+	SpawnedEnemies.Empty();
+	DeadTagEventHandles.Empty();
+	CurrentlyAlive = 0;
 
 }
