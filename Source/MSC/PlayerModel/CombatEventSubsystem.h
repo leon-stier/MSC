@@ -6,6 +6,11 @@ class UScoreProcessor;
 enum class ECombatSituation : uint8;
 struct FCombatEvent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHintTriggered, const FString&, HintText);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHintDismissed);
+
+
+
 UCLASS()
 class UCombatEventSubsystem : public UGameInstanceSubsystem
 {
@@ -46,6 +51,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void CloseOpportunity(ECombatSituation OpportunityType, FGameplayTag ActedAbilityTag);
 	
+	UPROPERTY(BlueprintAssignable)
+	FOnHintTriggered OnHintTriggered;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnHintDismissed OnHintDismissed;
 
 	// Inactivity tracking
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
@@ -57,7 +67,15 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 private:
+	UFUNCTION()
+	void TriggerHint(const FGameplayTag& ForgottenInputTag);
+
+	bool bHintActive = false;
+	
 	bool bIsFrozen = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Hints")
+	float ForgottenInputDriftThreshold = -0.3f;
 	
 	UPROPERTY()
 	UScoreProcessor* ScoreProcessor;

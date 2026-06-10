@@ -65,7 +65,7 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 		Metrics.UnassignedInputs++;
 		break;
 
- 
+
 	default: break;
 	}
 }
@@ -95,6 +95,13 @@ void UScoreProcessor::ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Out
 
 	float& Proficiency = Metrics.InputProficiency.FindOrAdd(AbilityTag, 0.5f);
 	Proficiency = OpportunityAlpha * Proficiency + (1.f - OpportunityAlpha) * Outcome;
+	float* Baseline = BaselineMetrics.InputProficiency.Find(AbilityTag);
+
+	if (Baseline != nullptr && Proficiency - *Baseline < ForgottenInputDriftThreshold)
+	{
+		ForgottenInputs.Add(AbilityTag);
+		CheckHintConditions();
+	}
 }
 
 TArray<FGameplayTag> UScoreProcessor::GetOpportunityActionTags(ECombatSituation OpportunityType) const
@@ -134,6 +141,12 @@ TArray<FGameplayTag> UScoreProcessor::GetOpportunityActionTags(ECombatSituation 
 	}
 }
 
+void UScoreProcessor::CheckHintConditions()
+{
+	if (Metrics.FrustrationScore < FrustrationHintThreshold || ForgottenInputs.IsEmpty()) return;
+	OnInputForgotten.Broadcast(ForgottenInputs.Pop());
+}
+
 void UScoreProcessor::ActivateInactivitySignal()
 {
 	if (!InactivitySignal.bActive)
@@ -150,10 +163,19 @@ void UScoreProcessor::DeactivateInactivitySignal()
 }
 
 const FCombatMetrics& UScoreProcessor::GetMetrics() const
-{ return Metrics; }
+{
+	return Metrics;
+}
 
 void UScoreProcessor::Tick(float DeltaTime)
 {
+	if (!bBaselineInit)
+	{
+		float result = BaselineMetrics.InputProficiency.Add(
+			FGameplayTag::RequestGameplayTag(FName("Ability.Id.Block")), 1.0f);
+
+		bBaselineInit = true;
+	}
 	if (InactivitySignal.bActive)
 	{
 		if (bIsFrozen)
@@ -181,4 +203,5 @@ void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float 
 
 	Metrics.FrustrationScore = DecayedScore + ScaledEventWeight + ScaledDurationPenalty;
 	Metrics.FrustrationScore = FMath::Clamp(Metrics.FrustrationScore, 0.f, 1.f);
+	CheckHintConditions();
 }

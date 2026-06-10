@@ -8,7 +8,9 @@ enum class ECombatEventType : uint8;
 enum class ECombatSituation : uint8;
 struct FCombatEvent;
 
-// ScoreProcessor.h
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnInputForgotten, const FGameplayTag&);
+
+
 UCLASS()
 class UScoreProcessor : public UObject, public FTickableGameObject
 {
@@ -22,32 +24,46 @@ public:
     void DeactivateInactivitySignal();
 
     const FCombatMetrics& GetMetrics() const;
-
-    // FTickableGameObject
+	
     virtual void Tick(float DeltaTime) override;
     virtual bool IsTickable() const override { return true; }
     virtual TStatId GetStatId() const override 
     { 
         RETURN_QUICK_DECLARE_CYCLE_STAT(UScoreProcessor, STATGROUP_Tickables); 
     }
+
+	bool bBaselineInit = false;
 	
 	bool bIsFrozen = false;
+	
+	FOnInputForgotten OnInputForgotten;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Hints")
+	float FrustrationHintThreshold = 0.3f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Scoring")
+	float ForgottenInputDriftThreshold = -0.2f;
 
 private:
     void UpdateFrustrationScore(float DeltaTime, float DiscreteEventWeight);
     void ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Outcome);
     TArray<FGameplayTag> GetOpportunityActionTags(ECombatSituation OpportunityType) const;
+	
+	void CheckHintConditions();
+	
+	TArray<FGameplayTag> ForgottenInputs;
 
     FCombatMetrics Metrics;
+	FCombatMetrics BaselineMetrics;
 
-    // Max expected frustration value used to scale weights into [0,1].
+    // Max expected frustration value used to scale weights into [0,1]
     float FrustrationScoreMax = 10.f;
 
-    // lambda: exponential decay constant
-    float DecayConstant = 0.1f;
+    // Exponential decay constant
+    float DecayConstant = 0.0f;
 
     // EWMA smoothing factor for opportunity outcomes [0,1]
-    // higher = keeps more historical weight
+    // higher = more historical weight
     float OpportunityAlpha = 0.8f;
 
     // Discrete event weights (w_j)

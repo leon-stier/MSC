@@ -11,11 +11,18 @@ void UCombatEventSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	ScoreProcessor = NewObject<UScoreProcessor>(this);
+	
+	ScoreProcessor->OnInputForgotten.AddUObject(this, &UCombatEventSubsystem::TriggerHint);
 }
 
 void UCombatEventSubsystem::Deinitialize()
 {
 	Super::Deinitialize();
+}
+
+void UCombatEventSubsystem::TriggerHint(const FGameplayTag& ForgottenInputTag)
+{
+	OnHintTriggered.Broadcast("Press " + ForgottenInputTag.GetTagName().ToString() + " to react!");
 }
 
 
@@ -62,7 +69,7 @@ float UCombatEventSubsystem::GetMetricValue(FGameplayTag MetricOrAbilityTag) con
 void UCombatEventSubsystem::ReportEvent(FCombatEvent Event)
 {
 	Event.Timestamp = GetWorld()->GetTimeSeconds();
-    
+
 	// OnCombatEvent.Broadcast(Event);
 
 	ScoreProcessor->ProcessTelemetryEvent(Event);
@@ -93,13 +100,13 @@ void UCombatEventSubsystem::ReportOpportunity(ECombatSituation OpportunityType, 
 	}
 
 	if (WindowDuration <= 0.f) return;
-	
+
 	// Auto-close the opportunity after the window expires
 	FTimerHandle OpportunityTimer;
-	GetWorld()->GetTimerManager().SetTimer(OpportunityTimer,[this, OpportunityType]()
-		{
-			CloseOpportunity(OpportunityType, FGameplayTag());
-		},WindowDuration, false);
+	GetWorld()->GetTimerManager().SetTimer(OpportunityTimer, [this, OpportunityType]()
+	{
+		CloseOpportunity(OpportunityType, FGameplayTag());
+	}, WindowDuration, false);
 }
 
 void UCombatEventSubsystem::CloseOpportunity(ECombatSituation OpportunityType, FGameplayTag ActedAbilityTag)
