@@ -106,33 +106,94 @@ struct FInputDeviationRecord
 USTRUCT()
 struct FCombatMetrics
 {
+	FCombatMetrics()
+	{
+		SeedFloat(FrustrationScore, 0.f);
+		SeedInt(Deaths, 0);
+		SeedInt(DamageTakenCount, 0);
+		SeedInt(SuccessfulCombos, 0);
+		SeedInt(SuccessfulHits, 0);
+		SeedInt(SuccessfulParries, 0);
+		SeedInt(SuccessfulBlocks, 0);
+		SeedInt(SuccessfulDodges, 0);
+		SeedInt(AbilitiesMissed, 0);
+		SeedInt(UnassignedInputs, 0);
+		SeedInt(TotalOpportunities, 0);
+		SeedInt(ActedOpportunities, 0);
+	}
+	
+	void Reset()
+	{
+		SeedFloat(FrustrationScore, 0.f);
+		SeedInt(Deaths, 0);
+		SeedInt(DamageTakenCount, 0);
+		SeedInt(SuccessfulCombos, 0);
+		SeedInt(SuccessfulHits, 0);
+		SeedInt(SuccessfulParries, 0);
+		SeedInt(SuccessfulBlocks, 0);
+		SeedInt(SuccessfulDodges, 0);
+		SeedInt(AbilitiesMissed, 0);
+		SeedInt(UnassignedInputs, 0);
+		SeedInt(TotalOpportunities, 0);
+		SeedInt(ActedOpportunities, 0);
+	}
+	
+	void Clear()
+	{
+		FrustrationScore.Empty();
+		Deaths.Empty();
+		DamageTakenCount.Empty();
+		SuccessfulCombos.Empty();
+		SuccessfulHits.Empty();
+		SuccessfulParries.Empty();
+		SuccessfulBlocks.Empty();
+		SuccessfulDodges.Empty();
+		AbilitiesMissed.Empty();
+		UnassignedInputs.Empty();
+		TotalOpportunities.Empty();
+		ActedOpportunities.Empty();
+		InputProficiency.Empty();
+		AbilityActivations.Empty();
+		AbilityMisses.Empty();
+	}
+	
 	GENERATED_BODY()
 
-    // Global frustration score F(t)
-    float FrustrationScore = 0.f;
+    // Global frustration score [0,1], higher means more frustrated
+    TArray<TPair<float, float>> FrustrationScore;
 
     // Per-input EWMA proficiency [0,1]
-    TMap<FGameplayTag, float> InputProficiency;
+    TMap<FGameplayTag, TArray<TPair<float, float>>> InputProficiency;
+	
 
     // Raw counters
-    int32 Deaths = 0;
-    int32 DamageTakenCount = 0;
-    int32 SuccessfulCombos = 0;
-    int32 SuccessfulHits = 0;
-    int32 SuccessfulParries = 0;
-    int32 SuccessfulBlocks = 0;
-    int32 SuccessfulDodges = 0;
-    int32 AbilitiesMissed = 0;
-    int32 UnassignedInputs = 0;
+    TArray<TPair<float, int32>> Deaths;
+    TArray<TPair<float, int32>> DamageTakenCount;
+    TArray<TPair<float, int32>> SuccessfulCombos;
+    TArray<TPair<float, int32>> SuccessfulHits;
+    TArray<TPair<float, int32>> SuccessfulParries;
+    TArray<TPair<float, int32>> SuccessfulBlocks;
+    TArray<TPair<float, int32>> SuccessfulDodges;
+    TArray<TPair<float, int32>> AbilitiesMissed;
+    TArray<TPair<float, int32>> UnassignedInputs;
 
-    int32 TotalOpportunities = 0;
-    int32 ActedOpportunities = 0;
+    TArray<TPair<float, int32>> TotalOpportunities;
+    TArray<TPair<float, int32>> ActedOpportunities;
 
-    TMap<FGameplayTag, int32> AbilityActivations;
-    TMap<FGameplayTag, int32> AbilityMisses;
-	TMap<ECombatSituation, FInputOpportunityRecord> OpportunityRecords;
+    TMap<FGameplayTag, TArray<TPair<float, int32>>> AbilityActivations;
+    TMap<FGameplayTag, TArray<TPair<float, int32>>> AbilityMisses;
 	
-	TMap<FGameplayTag, FInputDeviationRecord> InputDeviationRecords;
 	bool bRecordingBaseline = false;
 	bool bBaselineEstablished = false;
+	
+private:
+	static void SeedFloat(TArray<TPair<float, float>>& Array, float InitialValue)
+	{
+		Array.Add(TPair<float, float>(0.f, InitialValue));
+	}
+
+	static void SeedInt(TArray<TPair<float, int32>>& Array, int32 InitialValue)
+	{
+		Array.Add(TPair<float, int32>(0.f, InitialValue));
+	}
 };

@@ -8,16 +8,16 @@ public class MSC : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[]
-		{
+		PublicDependencyModuleNames.AddRange([
 			"Core", 
 			"CoreUObject", 
 			"Engine", 
 			"InputCore", "EnhancedInput", 
 			"GameplayAbilities", "GameplayTags", "GameplayTasks", 
 			"AIModule", "StateTreeModule", "GameplayStateTreeModule", 
-			"UMG", "SlateCore", "Slate"
-		});
+			"UMG", "SlateCore", "Slate",
+			"Json", "JsonUtilities"
+		]);
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

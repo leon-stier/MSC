@@ -20,41 +20,41 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 	switch (Event.EventType)
 	{
 	case ECombatEventType::PlayerDied:
-		Metrics.Deaths++;
+		IncrementAppend(Metrics.Deaths);
 		break;
 
 	case ECombatEventType::PlayerTookDamage:
-		Metrics.DamageTakenCount++;
+		IncrementAppend(Metrics.DamageTakenCount);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulCombo:
-		Metrics.SuccessfulCombos++;
+		IncrementAppend(Metrics.SuccessfulCombos);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulParry:
-		Metrics.SuccessfulParries++;
+		IncrementAppend(Metrics.SuccessfulParries);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulBlock:
-		Metrics.SuccessfulBlocks++;
+		IncrementAppend(Metrics.SuccessfulBlocks);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulDodge:
-		Metrics.SuccessfulDodges++;
+		IncrementAppend(Metrics.SuccessfulDodges);
 		break;
 
 	case ECombatEventType::PlayerSuccessfulHit:
-		Metrics.SuccessfulHits++;
+		IncrementAppend(Metrics.SuccessfulHits);
 		DeactivateInactivitySignal();
 		break;
 
 	case ECombatEventType::PlayerAbilitySuccessful:
-		Metrics.AbilityActivations.FindOrAdd(Event.AbilityTag)++;
+		IncrementAppend(Metrics.AbilityActivations.FindOrAdd(Event.AbilityTag));
 		break;
 
 	case ECombatEventType::PlayerAbilityMissed:
-		Metrics.AbilitiesMissed++;
-		Metrics.AbilityMisses.FindOrAdd(Event.AbilityTag)++;
+		IncrementAppend(Metrics.AbilitiesMissed);
+		IncrementAppend(Metrics.AbilityMisses.FindOrAdd(Event.AbilityTag));
 		break;
 
 	case ECombatEventType::PlayerInactive:
@@ -62,7 +62,7 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 		break;
 
 	case ECombatEventType::PlayerUnassignedInput:
-		Metrics.UnassignedInputs++;
+		IncrementAppend(Metrics.UnassignedInputs);
 		break;
 
 
@@ -73,17 +73,23 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 void UScoreProcessor::ProcessOpportunity(ECombatSituation OpportunityType, FGameplayTag ActedAbilityTag)
 {
 	if (bIsFrozen) return;
+	IncrementAppend(Metrics.TotalOpportunities);
 	const TArray<FGameplayTag> ActionTags = GetOpportunityActionTags(OpportunityType);
 	if (ActionTags.IsEmpty())
 	{
 		return;
 	}
-
+	bool bActed = false;
 	for (const FGameplayTag& ActionTag : ActionTags)
 	{
 		const float Outcome = (ActedAbilityTag.IsValid() && ActionTag == ActedAbilityTag) ? 1.f : 0.f;
+		if (Outcome > 0.f)
+		{
+			bActed = true;
+		}
 		ApplyOpportunityOutcome(ActionTag, Outcome);
 	}
+	if (bActed) IncrementAppend(Metrics.ActedOpportunities);
 }
 
 void UScoreProcessor::ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Outcome)
@@ -93,11 +99,19 @@ void UScoreProcessor::ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Out
 		return;
 	}
 
-	float& Proficiency = Metrics.InputProficiency.FindOrAdd(AbilityTag, 0.5f);
-	Proficiency = OpportunityAlpha * Proficiency + (1.f - OpportunityAlpha) * Outcome;
-	float* Baseline = BaselineMetrics.InputProficiency.Find(AbilityTag);
+	TArray<TPair<float, float>>& ProficiencyArray = Metrics.InputProficiency.FindOrAdd(AbilityTag, {{GetInitTime(), 0.5f}});
+	float CurrentProficiency = ProficiencyArray.Last().Value;
+	CurrentProficiency = OpportunityAlpha * CurrentProficiency + (1.f - OpportunityAlpha) * Outcome;
+	
+	Append(ProficiencyArray, CurrentProficiency);
+	
+	auto Baseline = BaselineMetrics.InputProficiency.Find(AbilityTag);
+	float BaselineValue = (Baseline == nullptr || Baseline->IsEmpty()) ? 0.f : Baseline->Last().Value;
 
-	if (Baseline != nullptr && Proficiency - *Baseline < ForgottenInputDriftThreshold)
+	UE_LOG(LogTemp, Warning, TEXT("Proficiency: %f"), CurrentProficiency);
+	UE_LOG(LogTemp, Warning, TEXT("Proficiency in Metrics.InputProficiency: %f"), Metrics.InputProficiency.Find(AbilityTag)->Last().Value);
+	UE_LOG(LogTemp, Warning, TEXT("Proficiency in Array: %f"), ProficiencyArray.Last().Value);
+	if (CurrentProficiency - BaselineValue < ForgottenInputDriftThreshold)
 	{
 		ForgottenInputs.Add(AbilityTag);
 		CheckHintConditions();
@@ -143,7 +157,7 @@ TArray<FGameplayTag> UScoreProcessor::GetOpportunityActionTags(ECombatSituation 
 
 void UScoreProcessor::CheckHintConditions()
 {
-	if (Metrics.FrustrationScore < FrustrationHintThreshold || ForgottenInputs.IsEmpty()) return;
+	if (Metrics.FrustrationScore.Last().Value < FrustrationHintThreshold || ForgottenInputs.IsEmpty()) return;
 	OnInputForgotten.Broadcast(ForgottenInputs.Pop());
 }
 
@@ -167,12 +181,18 @@ const FCombatMetrics& UScoreProcessor::GetMetrics() const
 	return Metrics;
 }
 
+void UScoreProcessor::SwitchToLiveMetrics()
+{
+	Metrics.Clear();	// Empty everything
+	Metrics.Reset();	// Set initial value for Arrays (Does not affect Maps)
+	// Maybe keep proficiency?
+}
+
 void UScoreProcessor::Tick(float DeltaTime)
 {
 	if (!bBaselineInit)
 	{
-		float result = BaselineMetrics.InputProficiency.Add(
-			FGameplayTag::RequestGameplayTag(FName("Ability.Id.Block")), 1.0f);
+		BaselineMetrics.InputProficiency.Add(FGameplayTag::RequestGameplayTag(FName("Ability.Id.Block")),{{Now(), 1.0f}});
 
 		bBaselineInit = true;
 	}
@@ -194,14 +214,17 @@ void UScoreProcessor::Tick(float DeltaTime)
 void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float DiscreteEventWeight)
 {
 	if (bIsFrozen) return;
+	
+	float CurrentFrustrationScore = Metrics.FrustrationScore.Last().Value;
 	// F(t+dt) = F(t) * e^(-lambda * dt) + sum(w_j) + sum(r_k(t) * dt)
-	const float DecayedScore = Metrics.FrustrationScore * FMath::Exp(-DecayConstant * DeltaTime);
+	const float DecayedScore = CurrentFrustrationScore * FMath::Exp(-DecayConstant * DeltaTime);
 	const float DurationPenalty = InactivitySignal.GetPenaltyRate() * DeltaTime;
 
 	const float ScaledEventWeight = DiscreteEventWeight / FrustrationScoreMax;
 	const float ScaledDurationPenalty = DurationPenalty / FrustrationScoreMax;
 
-	Metrics.FrustrationScore = DecayedScore + ScaledEventWeight + ScaledDurationPenalty;
-	Metrics.FrustrationScore = FMath::Clamp(Metrics.FrustrationScore, 0.f, 1.f);
+	CurrentFrustrationScore = DecayedScore + ScaledEventWeight + ScaledDurationPenalty;
+	CurrentFrustrationScore = FMath::Clamp(CurrentFrustrationScore, 0.f, 1.f);
+	Append(Metrics.FrustrationScore, CurrentFrustrationScore);
 	CheckHintConditions();
 }

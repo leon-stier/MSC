@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "CombatEventTypes.h"
 #include "CombatMetrics.h"
+#include "SessionManager.h"
 #include "ScoreProcessor.generated.h"
 
 struct FCombatMetrics;
@@ -25,6 +26,8 @@ public:
 
     const FCombatMetrics& GetMetrics() const;
 	
+	void SwitchToLiveMetrics();
+	
     virtual void Tick(float DeltaTime) override;
     virtual bool IsTickable() const override { return true; }
     virtual TStatId GetStatId() const override 
@@ -43,6 +46,11 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Scoring")
 	float ForgottenInputDriftThreshold = -0.2f;
+	
+	void SetTimeProvider(TObjectPtr<USessionTimeProvider> InTimeProvider)
+	{
+		TimeProvider = InTimeProvider;
+	}
 
 private:
     void UpdateFrustrationScore(float DeltaTime, float DiscreteEventWeight);
@@ -53,6 +61,34 @@ private:
 	
 	TArray<FGameplayTag> ForgottenInputs;
 
+	UPROPERTY()
+	TObjectPtr<USessionTimeProvider> TimeProvider;
+	
+	float Now() const 
+	{ 
+		return TimeProvider ? TimeProvider->GetSessionTime() : 0.f; 
+	}
+	
+	float GetInitTime() const
+	{
+		return TimeProvider ? TimeProvider->GetInitTime() : 0.f;
+	}
+	
+	template<typename T>
+	void IncrementAppend(TArray<TPair<float, T>>& Array) const
+	{
+		T NewCount = Array.IsEmpty() ? 1 : Array.Last().Value + 1;
+		Array.Add(TPair<float, T>(Now(), NewCount));
+	}
+
+	// Helpers to append timestamped values
+	template<typename T>
+	void Append(TArray<TPair<float, T>>& Array, T Value) const
+	{
+		Array.Add(TPair<float, T>(Now(), Value));
+	}
+	
+	
     FCombatMetrics Metrics;
 	FCombatMetrics BaselineMetrics;
 

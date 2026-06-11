@@ -2,6 +2,7 @@
 #include "CombatMetrics.h"
 #include "CombatEventSubsystem.generated.h"
 
+class USessionManager;
 class UScoreProcessor;
 enum class ECombatSituation : uint8;
 struct FCombatEvent;
@@ -63,6 +64,16 @@ public:
 
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnCombatEvent, const FCombatEvent&);
 	FOnCombatEvent OnCombatEvent;
+	
+	UFUNCTION(BlueprintCallable)
+	void InitializeSession(const FString& PlayerName);
+
+	UFUNCTION(BlueprintCallable)
+	void StartHintsPhase();
+
+	// How often to autosave in seconds
+	UPROPERTY(EditDefaultsOnly, Category = "Session")
+	float AutoSaveInterval = 10.f;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -75,6 +86,16 @@ private:
 	bool bHintActive = false;
 	
 	FTimerHandle HintTimer;
+	
+	UPROPERTY()
+	USessionManager* SessionManager;
+
+	// Separate metrics for baseline and hints phases
+	FCombatMetrics BaselineMetrics;
+
+	FTimerHandle AutoSaveTimer;
+
+	void OnAutosaveTimer() const;
 	
 	bool bIsFrozen = false;
 

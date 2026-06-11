@@ -64,6 +64,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoUnassignedInput();
+	
+	UFUNCTION(BlueprintCallable, Category="Input")
+	virtual void DoSwitchToHints();
 
 	
 	UFUNCTION()
@@ -162,6 +165,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* UnassignedAction;
+	
+	UPROPERTY(EditAnywhere, Category="Input")
+	UInputAction* SwitchToHintsAction;
 	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
