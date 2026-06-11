@@ -23,6 +23,15 @@ void UCombatEventSubsystem::Deinitialize()
 void UCombatEventSubsystem::TriggerHint(const FGameplayTag& ForgottenInputTag)
 {
 	OnHintTriggered.Broadcast("Press " + ForgottenInputTag.GetTagName().ToString() + " to react!");
+	GetWorld()->GetTimerManager().SetTimer(HintTimer, this, &UCombatEventSubsystem::DisableHint, 3.f, false);
+	bHintActive = true;
+}
+
+void UCombatEventSubsystem::DisableHint()
+{
+	bHintActive = false;
+	GetWorld()->GetTimerManager().ClearTimer(HintTimer);
+	OnHintDismissed.Broadcast();
 }
 
 

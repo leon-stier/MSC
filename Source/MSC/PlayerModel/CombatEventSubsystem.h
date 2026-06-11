@@ -69,8 +69,12 @@ public:
 private:
 	UFUNCTION()
 	void TriggerHint(const FGameplayTag& ForgottenInputTag);
+	
+	void DisableHint();
 
 	bool bHintActive = false;
+	
+	FTimerHandle HintTimer;
 	
 	bool bIsFrozen = false;
 
