@@ -76,6 +76,13 @@ void UMSC_HealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attr
 					FCombatEvent Event;
 					Event.EventType = ECombatEventType::PlayerTookDamage;
 					CombatEvents->ReportEvent(Event);
+					
+					if (ASC->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(FName("Combat.UsedAbility"))))
+					{
+						FCombatEvent AlsoEvent;
+						AlsoEvent.EventType = ECombatEventType::PlayerAbilityMissed;
+						CombatEvents->ReportEvent(AlsoEvent);
+					}
 				}
 			}
 		}
