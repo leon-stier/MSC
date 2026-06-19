@@ -2,6 +2,7 @@
 #include "CombatMetrics.h"
 #include "CombatEventSubsystem.generated.h"
 
+class UAbilityHintData;
 class USessionManager;
 class UScoreProcessor;
 enum class ECombatSituation : uint8;
@@ -12,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHintDismissed);
 
 
 
-UCLASS()
+UCLASS(Config=Game)
 class UCombatEventSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
@@ -86,6 +87,12 @@ private:
 	bool bHintActive = false;
 	
 	FTimerHandle HintTimer;
+	
+	UPROPERTY(Config, EditDefaultsOnly, Category = "Hints")
+	FSoftObjectPath HintDataPath;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Hints")
+	TObjectPtr<UAbilityHintData> HintData;
 	
 	UPROPERTY()
 	USessionManager* SessionManager;

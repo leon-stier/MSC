@@ -3,6 +3,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "CombatEventTypes.h"
+#include "HintData.h"
 #include "Kismet/GameplayStatics.h"
 #include "ScoreProcessor.h"
 
@@ -15,6 +16,13 @@ void UCombatEventSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	InitializeSession(TEXT("Player1")); // Placeholder player name, should be set dynamically
 
 	ScoreProcessor->OnInputForgotten.AddUObject(this, &UCombatEventSubsystem::TriggerHint);
+	
+	UAbilityHintData* LoadedHintData = Cast<UAbilityHintData>(
+	HintDataPath.TryLoad());
+	if (IsValid(LoadedHintData))
+	{
+		HintData = LoadedHintData;
+	}
 }
 
 void UCombatEventSubsystem::Deinitialize()
@@ -24,7 +32,8 @@ void UCombatEventSubsystem::Deinitialize()
 
 void UCombatEventSubsystem::TriggerHint(const FGameplayTag& ForgottenInputTag)
 {
-	OnHintTriggered.Broadcast("Press " + ForgottenInputTag.GetTagName().ToString() + " to react!");
+	FAbilityHintEntry HintDataEntry = HintData->GetHintEntry(ForgottenInputTag);
+	OnHintTriggered.Broadcast(FString::Printf(TEXT("Press %s %s"), *HintDataEntry.InputLabel, *HintDataEntry.HintText));
 	GetWorld()->GetTimerManager().SetTimer(HintTimer, this, &UCombatEventSubsystem::DisableHint, 3.f, false);
 	bHintActive = true;
 }
