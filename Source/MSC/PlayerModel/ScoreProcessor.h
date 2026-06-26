@@ -25,6 +25,7 @@ public:
     void DeactivateInactivitySignal();
 
     const FCombatMetrics& GetMetrics() const;
+    const FCombatMetrics& GetBaselineMetrics() const;
 	
 	void SwitchToLiveMetrics();
 	

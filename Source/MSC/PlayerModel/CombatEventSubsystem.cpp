@@ -86,6 +86,29 @@ float UCombatEventSubsystem::GetMetricValue(FGameplayTag MetricOrAbilityTag) con
 	return 0.f;
 }
 
+float UCombatEventSubsystem::GetBaselineValue(FGameplayTag MetricOrAbilityTag) const
+{
+	if (!ScoreProcessor)
+	{
+		return 0.f;
+	}
+
+	const FCombatMetrics& Metrics = ScoreProcessor->GetBaselineMetrics();
+	const FGameplayTag FrustrationTag = FGameplayTag::RequestGameplayTag(FName("Metric.FrustrationScore"));
+
+	if (MetricOrAbilityTag == FrustrationTag)
+	{
+		return Metrics.FrustrationScore.Last().Value;
+	}
+
+	if (const auto Value = Metrics.InputProficiency.Find(MetricOrAbilityTag))
+	{
+		return Value->Last().Value;
+	}
+
+	return 0.f;
+}
+
 void UCombatEventSubsystem::ReportEvent(FCombatEvent Event)
 {
 	Event.Timestamp = GetWorld()->GetTimeSeconds();

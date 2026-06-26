@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CombatMetrics.h"
+#include "SessionManager.h"
 #include "CombatEventSubsystem.generated.h"
 
 class UAbilityHintData;
@@ -43,6 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	float GetMetricValue(FGameplayTag MetricOrAbilityTag) const;
 	
+	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
+	float GetBaselineValue(FGameplayTag MetricOrAbilityTag) const;
+	
 	// Single entry point for all events
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	void ReportEvent(FCombatEvent Event);
@@ -71,6 +75,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void StartHintsPhase();
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsBaselinePhase() const { return SessionManager->IsBaselinePhase(); }
 
 	// How often to autosave in seconds
 	UPROPERTY(EditDefaultsOnly, Category = "Session")

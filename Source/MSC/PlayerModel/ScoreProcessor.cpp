@@ -181,6 +181,11 @@ const FCombatMetrics& UScoreProcessor::GetMetrics() const
 	return Metrics;
 }
 
+const FCombatMetrics& UScoreProcessor::GetBaselineMetrics() const
+{
+	return BaselineMetrics;
+}
+
 void UScoreProcessor::SwitchToLiveMetrics()
 {
 	Metrics.Clear();	// Empty everything
