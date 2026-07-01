@@ -33,7 +33,7 @@ void UCombatEventSubsystem::Deinitialize()
 void UCombatEventSubsystem::TriggerHint(const FGameplayTag& ForgottenInputTag)
 {
 	FAbilityHintEntry HintDataEntry = HintData->GetHintEntry(ForgottenInputTag);
-	OnHintTriggered.Broadcast(FString::Printf(TEXT("Press %s %s"), *HintDataEntry.InputLabel, *HintDataEntry.HintText));
+	OnHintTriggered.Broadcast(HintDataEntry);
 	GetWorld()->GetTimerManager().SetTimer(HintTimer, this, &UCombatEventSubsystem::DisableHint, 3.f, false);
 	bHintActive = true;
 }

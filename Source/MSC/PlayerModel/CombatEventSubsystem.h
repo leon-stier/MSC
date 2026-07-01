@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CombatMetrics.h"
+#include "HintData.h"
 #include "SessionManager.h"
 #include "CombatEventSubsystem.generated.h"
 
@@ -9,7 +10,7 @@ class UScoreProcessor;
 enum class ECombatSituation : uint8;
 struct FCombatEvent;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHintTriggered, const FString&, HintText);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHintTriggered, FAbilityHintEntry, HintData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHintDismissed);
 
 

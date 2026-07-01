@@ -10,14 +10,14 @@ struct FAbilityHintEntry
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag AbilityTag;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(BlueprintReadOnly)
 	FString HintText;
 
-	UPROPERTY(EditDefaultsOnly)
-	FString InputLabel;
+	UPROPERTY(BlueprintReadOnly)
+	FString IconName;
 };
 
 UCLASS()
