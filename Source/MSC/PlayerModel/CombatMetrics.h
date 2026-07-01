@@ -45,65 +45,6 @@ struct FActiveDurationSignal
 };
 
 USTRUCT()
-struct FInputOpportunityRecord
-{
-	GENERATED_BODY()
-
-	int32 TotalOpportunities = 0;
-
-	int32 ActedOn = 0;
-
-	// Current usage rate [0,1]
-	float GetUsageRate() const
-	{
-		return TotalOpportunities > 0 
-			? static_cast<float>(ActedOn) / TotalOpportunities 
-			: 0.f;
-	}
-};
-
-USTRUCT()
-struct FInputBaseline
-{
-	GENERATED_BODY()
-
-	float BaselineUsageRate = 0.f;
-
-	bool bIsEstablished = false;
-};
-
-USTRUCT()
-struct FInputDeviationRecord
-{
-	GENERATED_BODY()
-
-	FInputBaseline Baseline;
-	FInputOpportunityRecord Current;
-
-	// How much usage has changed relative to baseline
-	// Negative means less usage than baseline
-	float GetUsageDeviation() const
-	{
-		if (!Baseline.bIsEstablished) return 0.f;
-		return Current.GetUsageRate() - Baseline.BaselineUsageRate;
-	}
-
-	// Normalized Deviation [-1, 1] relative to baseline
-	// -1 means never used anymore, 0 means same as baseline, +1 means always used
-	float GetNormalizedDeviation() const
-	{
-		if (!Baseline.bIsEstablished || Baseline.BaselineUsageRate <= 0.f) 
-			return 0.f;
-		return GetUsageDeviation() / Baseline.BaselineUsageRate;
-	}
-
-	bool IsForgotten(float DeviationThreshold = -0.5f) const
-	{
-		return Baseline.bIsEstablished && GetNormalizedDeviation() < DeviationThreshold;
-	}
-};
-
-USTRUCT()
 struct FCombatMetrics
 {
 	FCombatMetrics()

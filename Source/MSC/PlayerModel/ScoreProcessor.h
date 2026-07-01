@@ -43,7 +43,7 @@ public:
 	FOnInputForgotten OnInputForgotten;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Hints")
-	float FrustrationHintThreshold = 0.3f;
+	float FrustrationHintThreshold = 0.5f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Scoring")
 	float ForgottenInputDriftThreshold = -0.2f;
@@ -106,7 +106,7 @@ private:
     // Discrete event weights (w_j)
     TMap<ECombatEventType, float> EventWeights =
     {
-        { ECombatEventType::PlayerDied,              5.f  },
+        { ECombatEventType::PlayerDied,              3.5f  },
         { ECombatEventType::PlayerTookDamage,        2.f  },
         { ECombatEventType::PlayerAbilityMissed,     0.5f },
         { ECombatEventType::PlayerUnassignedInput,   0.3f },

@@ -48,6 +48,7 @@ void UScoreProcessor::ProcessTelemetryEvent(const FCombatEvent& Event)
 		DeactivateInactivitySignal();
 		break;
 
+		// Unused
 	case ECombatEventType::PlayerAbilitySuccessful:
 		IncrementAppend(Metrics.AbilityActivations.FindOrAdd(Event.AbilityTag));
 		break;
@@ -108,9 +109,6 @@ void UScoreProcessor::ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Out
 	auto Baseline = BaselineMetrics.InputProficiency.Find(AbilityTag);
 	float BaselineValue = (Baseline == nullptr || Baseline->IsEmpty()) ? 0.f : Baseline->Last().Value;
 
-	UE_LOG(LogTemp, Warning, TEXT("Proficiency: %f"), CurrentProficiency);
-	UE_LOG(LogTemp, Warning, TEXT("Proficiency in Metrics.InputProficiency: %f"), Metrics.InputProficiency.Find(AbilityTag)->Last().Value);
-	UE_LOG(LogTemp, Warning, TEXT("Proficiency in Array: %f"), ProficiencyArray.Last().Value);
 	if (CurrentProficiency - BaselineValue < ForgottenInputDriftThreshold)
 	{
 		ForgottenInputs.Add(AbilityTag);
@@ -195,12 +193,6 @@ void UScoreProcessor::SwitchToLiveMetrics()
 
 void UScoreProcessor::Tick(float DeltaTime)
 {
-	if (!bBaselineInit)
-	{
-		BaselineMetrics.InputProficiency.Add(FGameplayTag::RequestGameplayTag(FName("Ability.Id.Block")),{{Now(), 1.0f}});
-
-		bBaselineInit = true;
-	}
 	if (InactivitySignal.bActive)
 	{
 		if (bIsFrozen)
