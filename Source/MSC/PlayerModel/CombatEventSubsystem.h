@@ -39,9 +39,6 @@ public:
 	void UnfreezeScores();
 	
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
-	float GetFrustrationScore();
-	
-	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
 	float GetMetricValue(FGameplayTag MetricOrAbilityTag) const;
 	
 	UFUNCTION(BlueprintCallable, Category="Combat Metrics")
@@ -103,9 +100,6 @@ private:
 	
 	UPROPERTY()
 	USessionManager* SessionManager;
-
-	// Separate metrics for baseline and hints phases
-	FCombatMetrics BaselineMetrics;
 
 	FTimerHandle AutoSaveTimer;
 

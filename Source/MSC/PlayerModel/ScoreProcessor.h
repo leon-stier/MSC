@@ -56,7 +56,7 @@ public:
 private:
     void UpdateFrustrationScore(float DeltaTime, float DiscreteEventWeight);
     void ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Outcome);
-    TArray<FGameplayTag> GetOpportunityActionTags(ECombatSituation OpportunityType) const;
+    static TArray<FGameplayTag> GetOpportunityActionTags(ECombatSituation OpportunityType);
 	
 	void CheckHintConditions();
 	

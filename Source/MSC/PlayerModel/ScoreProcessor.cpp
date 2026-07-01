@@ -109,14 +109,16 @@ void UScoreProcessor::ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Out
 	auto Baseline = BaselineMetrics.InputProficiency.Find(AbilityTag);
 	float BaselineValue = (Baseline == nullptr || Baseline->IsEmpty()) ? 0.f : Baseline->Last().Value;
 
+	UE_LOG(LogTemp, Warning, TEXT("Checking thresholds. CurrentProficiency: %s. BaselineValue: %s"), *FString::SanitizeFloat(CurrentProficiency), *FString::SanitizeFloat(BaselineValue));
 	if (CurrentProficiency - BaselineValue < ForgottenInputDriftThreshold)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Forgotten input: %s"), *AbilityTag.ToString());
 		ForgottenInputs.Add(AbilityTag);
 		CheckHintConditions();
 	}
 }
 
-TArray<FGameplayTag> UScoreProcessor::GetOpportunityActionTags(ECombatSituation OpportunityType) const
+TArray<FGameplayTag> UScoreProcessor::GetOpportunityActionTags(ECombatSituation OpportunityType)
 {
 	switch (OpportunityType)
 	{
@@ -186,6 +188,7 @@ const FCombatMetrics& UScoreProcessor::GetBaselineMetrics() const
 
 void UScoreProcessor::SwitchToLiveMetrics()
 {
+	BaselineMetrics = Metrics;
 	Metrics.Clear();	// Empty everything
 	Metrics.Reset();	// Set initial value for Arrays (Does not affect Maps)
 	// Maybe keep proficiency?

@@ -58,11 +58,6 @@ void UCombatEventSubsystem::UnfreezeScores()
 	ScoreProcessor->bIsFrozen = false;
 }
 
-float UCombatEventSubsystem::GetFrustrationScore()
-{
-	return ScoreProcessor->GetMetrics().FrustrationScore.Last().Value;
-}
-
 float UCombatEventSubsystem::GetMetricValue(FGameplayTag MetricOrAbilityTag) const
 {
 	if (!ScoreProcessor)
@@ -183,15 +178,12 @@ void UCombatEventSubsystem::InitializeSession(const FString& PlayerName)
 void UCombatEventSubsystem::StartHintsPhase()
 {
 	// Save baseline metrics before switching
-	BaselineMetrics = ScoreProcessor->GetMetrics();
-	SessionManager->SaveMetrics(BaselineMetrics);
+	SessionManager->SaveMetrics(ScoreProcessor->GetMetrics());
 
 	SessionManager->StartHintsPhase();
 
 	// Reset score processor for the hints phase
 	ScoreProcessor->SwitchToLiveMetrics();
-
-	SessionManager->OnHintsPhaseStarted.Broadcast();
 }
 
 void UCombatEventSubsystem::OnAutosaveTimer() const
