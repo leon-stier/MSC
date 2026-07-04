@@ -344,14 +344,6 @@ void AMSC_CharacterPlayer::DoUnassignedInput()
 	}
 }
 
-void AMSC_CharacterPlayer::DoSwitchToHints()
-{
-	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
-	{
-		CombatEvents->StartHintsPhase();
-	}
-}
-
 void AMSC_CharacterPlayer::HandleLockSwitchInput(const FInputActionValue& Value)
 {
 	InterruptContinuousMovementTracking();
@@ -573,11 +565,6 @@ void AMSC_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		
 		// Unassigned Input
 		EnhancedInputComponent->BindAction(UnassignedAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoUnassignedInput);
-		
-		// Start Hint Phase
-		EnhancedInputComponent->BindAction(SwitchToHintsAction, ETriggerEvent::Triggered, this, &AMSC_CharacterPlayer::DoSwitchToHints);
-		
-		
 	}
 	else
 	{

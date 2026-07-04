@@ -2,6 +2,7 @@
 
 #include "MSC_EnemySpawner.generated.h"
 
+enum class ESessionState : uint8;
 struct FGameplayTag;
 class AMSC_CharacterEnemy;
 class UCapsuleComponent;
@@ -19,6 +20,8 @@ public:
 	
 	void ResetAll();
 	
+	UFUNCTION()
+	void OnSessionChanged(const ESessionState& NewState);
 	/** Spawn an enemy and subscribe to its death event */
 	void SpawnEnemy();
 	

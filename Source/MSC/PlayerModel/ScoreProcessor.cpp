@@ -186,14 +186,6 @@ const FCombatMetrics& UScoreProcessor::GetBaselineMetrics() const
 	return BaselineMetrics;
 }
 
-void UScoreProcessor::SwitchToLiveMetrics()
-{
-	BaselineMetrics = Metrics;
-	Metrics.Clear();	// Empty everything
-	Metrics.Reset();	// Set initial value for Arrays (Does not affect Maps)
-	// Maybe keep proficiency?
-}
-
 void UScoreProcessor::Tick(float DeltaTime)
 {
 	if (InactivitySignal.bActive)
@@ -209,6 +201,14 @@ void UScoreProcessor::Tick(float DeltaTime)
 
 	// Apply decay and duration penalties with no discrete events this tick
 	UpdateFrustrationScore(DeltaTime, 0.f);
+}
+
+void UScoreProcessor::Reset()
+{
+	Metrics.Clear();
+	BaselineMetrics.Clear();
+	Metrics.Reset();
+	BaselineMetrics.Reset();
 }
 
 void UScoreProcessor::UpdateFrustrationScore(const float DeltaTime, const float DiscreteEventWeight)

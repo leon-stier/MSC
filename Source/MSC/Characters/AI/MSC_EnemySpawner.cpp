@@ -6,6 +6,7 @@
 #include "MSC_CharacterEnemy.h"
 #include "Components/ArrowComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "MSC/PlayerModel/CombatEventSubsystem.h"
 
 AMSC_EnemySpawner::AMSC_EnemySpawner()
 {
@@ -30,8 +31,11 @@ AMSC_EnemySpawner::AMSC_EnemySpawner()
 void AMSC_EnemySpawner::BeginPlay()
 {
 	Super::BeginPlay();
-
-	Start();
+	
+	UCombatEventSubsystem* CombatEventSubsystem = UCombatEventSubsystem::Get(this);
+	if (!CombatEventSubsystem) return;
+	
+	CombatEventSubsystem->OnSessionStateChanged.AddDynamic(this, &AMSC_EnemySpawner::OnSessionChanged);
 }
 
 void AMSC_EnemySpawner::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -155,4 +159,16 @@ void AMSC_EnemySpawner::ResetAll()
 	DeadTagEventHandles.Empty();
 	CurrentlyAlive = 0;
 
+}
+
+void AMSC_EnemySpawner::OnSessionChanged(const ESessionState& NewState)
+{
+	if (NewState == ESessionState::RecordingBaseline || NewState == ESessionState::RecordingHints)
+	{
+		Start();
+	}
+	if (NewState == ESessionState::Idle)
+	{
+		ResetAll();
+	}
 }

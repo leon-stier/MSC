@@ -10,4 +10,5 @@ public:
 	static TSharedPtr<FJsonObject> MetricsToJson(const FCombatMetrics& Metrics);
 	static FString MetricsToJsonString(const FCombatMetrics& Metrics);
 	static bool WriteMetricsToFile(const FString& FilePath, const FCombatMetrics& Metrics);
+	static bool ReadLastMetricsSnapshot(const FString& FilePath, FCombatMetrics& OutMetrics);
 };

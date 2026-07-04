@@ -12,17 +12,20 @@ void UCombatEventSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	ScoreProcessor = NewObject<UScoreProcessor>(this);
+	ScoreProcessor->SetTimeProvider(NewObject<USessionTimeProvider>());
 	SessionManager = NewObject<USessionManager>(this);
-	InitializeSession(TEXT("Player1")); // Placeholder player name, should be set dynamically
+	SessionManager->Initialize(ScoreProcessor);
+	// InitializeSession(TEXT("Player1")); // Placeholder player name, should be set dynamically
 
 	ScoreProcessor->OnInputForgotten.AddUObject(this, &UCombatEventSubsystem::TriggerHint);
 	
-	UAbilityHintData* LoadedHintData = Cast<UAbilityHintData>(
-	HintDataPath.TryLoad());
+	UAbilityHintData* LoadedHintData = Cast<UAbilityHintData>(HintDataPath.TryLoad());
 	if (IsValid(LoadedHintData))
 	{
 		HintData = LoadedHintData;
 	}
+	
+	SessionManager->OnSessionStateChanged.AddDynamic(this, &UCombatEventSubsystem::OnSessionStateChangedHandler);
 }
 
 void UCombatEventSubsystem::Deinitialize()
@@ -164,29 +167,35 @@ void UCombatEventSubsystem::StopInactivityTracking()
 	}
 }
 
-void UCombatEventSubsystem::InitializeSession(const FString& PlayerName)
+void UCombatEventSubsystem::StartSession(const FString& PlayerName)
 {
-	SessionManager->InitializeSession(PlayerName);
-	ScoreProcessor->SetTimeProvider(NewObject<USessionTimeProvider>());
+	SessionManager->StartSession(PlayerName);
+}
 
+void UCombatEventSubsystem::StopSession()
+{
+	SessionManager->EndAndResetSession();
+}
+
+void UCombatEventSubsystem::StartAutoSave()
+{
 	// Start autosave timer
 	GetWorld()->GetTimerManager().SetTimer(AutoSaveTimer,
 		this, &UCombatEventSubsystem::OnAutosaveTimer,
 		AutoSaveInterval, true); // true = looping
 }
 
-void UCombatEventSubsystem::StartHintsPhase()
+void UCombatEventSubsystem::StopAutoSave()
 {
-	// Save baseline metrics before switching
-	SessionManager->SaveMetrics(ScoreProcessor->GetMetrics());
-
-	SessionManager->StartHintsPhase();
-
-	// Reset score processor for the hints phase
-	ScoreProcessor->SwitchToLiveMetrics();
+	GetWorld()->GetTimerManager().ClearTimer(AutoSaveTimer);
 }
 
 void UCombatEventSubsystem::OnAutosaveTimer() const
 {
 	SessionManager->SaveMetrics(ScoreProcessor->GetMetrics());
+}
+
+void UCombatEventSubsystem::OnSessionStateChangedHandler(const ESessionState& NewState)
+{
+	OnSessionStateChanged.Broadcast(NewState);
 }

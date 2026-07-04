@@ -69,20 +69,27 @@ public:
 	FOnCombatEvent OnCombatEvent;
 	
 	UFUNCTION(BlueprintCallable)
-	void InitializeSession(const FString& PlayerName);
-
+	void StartSession(const FString& PlayerName);
+	
 	UFUNCTION(BlueprintCallable)
-	void StartHintsPhase();
+	void StopSession();
 	
 	UFUNCTION(BlueprintCallable)
 	bool IsBaselinePhase() const { return SessionManager->IsBaselinePhase(); }
-
+	
+	void StartAutoSave();
+	
+	void StopAutoSave();
+	
 	// How often to autosave in seconds
 	UPROPERTY(EditDefaultsOnly, Category = "Session")
 	float AutoSaveInterval = 10.f;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnSessionStateChanged OnSessionStateChanged;
 private:
 	UFUNCTION()
 	void TriggerHint(const FGameplayTag& ForgottenInputTag);
@@ -105,6 +112,9 @@ private:
 	FTimerHandle AutoSaveTimer;
 
 	void OnAutosaveTimer() const;
+	
+	UFUNCTION()
+	void OnSessionStateChangedHandler(const ESessionState& NewState);
 	
 	bool bIsFrozen = false;
 

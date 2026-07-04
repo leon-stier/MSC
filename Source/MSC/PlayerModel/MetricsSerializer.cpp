@@ -104,3 +104,50 @@ bool FMetricsSerializer::WriteMetricsToFile(const FString& FilePath, const FComb
 	}
 	return true;
 }
+
+bool FMetricsSerializer::ReadLastMetricsSnapshot(const FString& FilePath, FCombatMetrics& OutMetrics)
+{
+    FString JsonString;
+    if (!FFileHelper::LoadFileToString(JsonString, *FilePath))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Could not load metrics from %s"), *FilePath);
+        return false;
+    }
+
+    TSharedPtr<FJsonObject> Root;
+    TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
+    if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to parse metrics at %s"), *FilePath);
+        return false;
+    }
+
+    // Read per-ability maps
+    auto ReadLastMapOfFloats = [&Root](
+        const FString& FieldName,
+        TMap<FGameplayTag, TArray<TPair<float, float>>>& OutMap)
+    {
+        const TSharedPtr<FJsonObject>* MapObj;
+        if (!Root->TryGetObjectField(FieldName, MapObj)) return;
+
+        for (const auto& [Key, ArrayValue] : (*MapObj)->Values)
+        {
+            FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*Key));
+            if (!Tag.IsValid()) continue;
+
+            const TArray<TSharedPtr<FJsonValue>>* Array;
+            if (!ArrayValue->TryGetArray(Array) || Array->IsEmpty()) continue;
+
+            const TSharedPtr<FJsonObject>* LastEntry;
+            if (Array->Last()->TryGetObject(LastEntry))
+            {
+                float LastValue = static_cast<float>((*LastEntry)->GetNumberField("v"));
+                OutMap.FindOrAdd(Tag).Add(TPair<float, float>(0.f, LastValue));
+            }
+        }
+    };
+
+    ReadLastMapOfFloats("InputProficiency", OutMetrics.InputProficiency);
+
+    return true;
+}

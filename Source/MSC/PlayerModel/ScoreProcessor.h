@@ -27,7 +27,10 @@ public:
     const FCombatMetrics& GetMetrics() const;
     const FCombatMetrics& GetBaselineMetrics() const;
 	
-	void SwitchToLiveMetrics();
+	void SetBaselineMetrics(const FCombatMetrics& InBaselineMetrics)
+	{
+		BaselineMetrics = InBaselineMetrics;
+	}
 	
     virtual void Tick(float DeltaTime) override;
     virtual bool IsTickable() const override { return true; }
@@ -36,9 +39,7 @@ public:
         RETURN_QUICK_DECLARE_CYCLE_STAT(UScoreProcessor, STATGROUP_Tickables); 
     }
 
-	bool bBaselineInit = false;
-	
-	bool bIsFrozen = false;
+	bool bIsFrozen = true;
 	
 	FOnInputForgotten OnInputForgotten;
 	
@@ -52,6 +53,8 @@ public:
 	{
 		TimeProvider = InTimeProvider;
 	}
+	
+	void Reset();
 
 private:
     void UpdateFrustrationScore(float DeltaTime, float DiscreteEventWeight);
