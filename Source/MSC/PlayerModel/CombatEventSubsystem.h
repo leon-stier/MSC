@@ -95,10 +95,14 @@ private:
 	void TriggerHint(const FGameplayTag& ForgottenInputTag);
 	
 	void DisableHint();
+	
+	void DisableBackoff();
 
 	bool bHintActive = false;
+	bool bHintBackingOff = false;
 	
 	FTimerHandle HintTimer;
+	FTimerHandle HintBackoffTimer;
 	
 	UPROPERTY(Config, EditDefaultsOnly, Category = "Hints")
 	FSoftObjectPath HintDataPath;

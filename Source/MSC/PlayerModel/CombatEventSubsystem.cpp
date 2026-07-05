@@ -35,17 +35,26 @@ void UCombatEventSubsystem::Deinitialize()
 
 void UCombatEventSubsystem::TriggerHint(const FGameplayTag& ForgottenInputTag)
 {
+	if (bHintActive) return;
 	FAbilityHintEntry HintDataEntry = HintData->GetHintEntry(ForgottenInputTag);
 	OnHintTriggered.Broadcast(HintDataEntry);
-	GetWorld()->GetTimerManager().SetTimer(HintTimer, this, &UCombatEventSubsystem::DisableHint, 3.f, false);
+	GetWorld()->GetTimerManager().SetTimer(HintTimer, this, &UCombatEventSubsystem::DisableHint, 5.f, false);
 	bHintActive = true;
 }
 
 void UCombatEventSubsystem::DisableHint()
 {
 	bHintActive = false;
+	bHintBackingOff = true;
 	GetWorld()->GetTimerManager().ClearTimer(HintTimer);
-	OnHintDismissed.Broadcast();
+	GetWorld()->GetTimerManager().SetTimer(HintBackoffTimer, this, &UCombatEventSubsystem::DisableBackoff, 5.f, false);
+	OnHintDismissed.Broadcast(); 
+}
+
+void UCombatEventSubsystem::DisableBackoff()
+{
+	bHintBackingOff = false;
+	GetWorld()->GetTimerManager().ClearTimer(HintBackoffTimer);
 }
 
 

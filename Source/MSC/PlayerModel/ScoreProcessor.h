@@ -47,7 +47,7 @@ public:
 	float FrustrationHintThreshold = 0.5f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Scoring")
-	float ForgottenInputDriftThreshold = -0.2f;
+	float ForgottenInputDriftThreshold = -0.5f;
 	
 	void SetTimeProvider(TObjectPtr<USessionTimeProvider> InTimeProvider)
 	{
