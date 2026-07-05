@@ -10,8 +10,8 @@ UENUM(BlueprintType)
 enum class ESessionState : uint8
 {
 	Idle,               // No session active
-	RecordingBaseline,  // Tester playing, baseline being recorded
-	RecordingHints,     // Second session, hints engaged
+	Baseline,  // Tester playing, baseline being recorded
+	Hints,     // Second session, hints engaged
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSessionStateChanged, const ESessionState&, NewState);
@@ -53,19 +53,15 @@ public:
 	void SaveMetrics(const FCombatMetrics& Metrics) const;
 
 	bool LoadBaseline(const FString& PlayerName, FCombatMetrics& OutMetrics);
-
-	bool IsBaselinePhase() const { return bBaselinePhase; }
-	bool IsInitialized() const { return bInitialized; }
 	
+	ESessionState GetSessionState() const { return SessionState; }
+
 	UPROPERTY(BlueprintAssignable)
 	FOnSessionStateChanged OnSessionStateChanged;
 private:
 	static FString BuildSessionPath(const FString& PlayerName);
-	static bool WriteJsonToFile(const FString& FilePath, const FString& JsonString);
 
 	FString SessionPath;
-	bool bBaselinePhase = true;
-	bool bInitialized = false;
 	
 	ESessionState SessionState = ESessionState::Idle;
 	FString CurrentTesterName;

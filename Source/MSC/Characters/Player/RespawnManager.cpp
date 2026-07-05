@@ -7,6 +7,16 @@
 #include "MSC/Characters/AI/MSC_EnemySpawner.h"
 #include "MSC/PlayerModel/CombatEventSubsystem.h"
 
+void ARespawnManager::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
+	{
+		CombatEvents->OnSessionStateChanged.AddDynamic(this, &ARespawnManager::OnSessionStateChanged);
+	}
+}
+
 void ARespawnManager::TriggerRespawn()
 {
 	// Freeze scores immediately
@@ -26,10 +36,19 @@ void ARespawnManager::OnRespawnTimerComplete()
 	UE_LOG(LogTemp, Warning, TEXT("Respawn timer complete. Resetting player and enemies."));
 	ResetAllEnemies();
 	ResetPlayer();
+	EnemySpawner->Start();
 
 	if (UCombatEventSubsystem* CombatEvents = UCombatEventSubsystem::Get(this))
 	{
 		CombatEvents->UnfreezeScores();
+	}
+}
+
+void ARespawnManager::OnSessionStateChanged(const ESessionState& NewState)
+{
+	if (NewState == ESessionState::Idle)
+	{
+		ResetPlayer();
 	}
 }
 
@@ -55,5 +74,4 @@ void ARespawnManager::ResetPlayer()
 		PC->Possess(NewPlayer);
 	}
 	
-	EnemySpawner->Start();
 }

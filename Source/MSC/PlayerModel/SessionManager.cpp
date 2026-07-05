@@ -29,7 +29,7 @@ void USessionManager::StartSession(const FString& PlayerName)
 	if (LoadBaseline(PlayerName, BaselineMetrics))
 	{
 		ScoreProcessor->SetBaselineMetrics(BaselineMetrics);
-		SessionState = ESessionState::RecordingHints;
+		SessionState = ESessionState::Hints;
 		OnSessionStateChanged.Broadcast(SessionState);
 		UE_LOG(LogTemp, Log, TEXT("Loaded previous baseline for %s - Starting Hints Phase"), *PlayerName);
 	} else
@@ -42,7 +42,7 @@ void USessionManager::StartSession(const FString& PlayerName)
 		{
 			PlatformFile.CreateDirectoryTree(*SessionPath);
 		}
-		SessionState = ESessionState::RecordingBaseline;
+		SessionState = ESessionState::Baseline;
 		OnSessionStateChanged.Broadcast(SessionState);
 		UE_LOG(LogTemp, Log, TEXT("No baseline exists for %s - Starting Baseline Phase"), *PlayerName);
 	}
@@ -55,8 +55,13 @@ void USessionManager::StartSession(const FString& PlayerName)
 
 void USessionManager::EndAndResetSession()
 {
+	if (SessionState == ESessionState::Idle)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EndAndResetSession called while no session active"));
+		return;
+	}
 	UCombatEventSubsystem::Get(GetWorld())->StopAutoSave();
-	if (SessionState == ESessionState::RecordingBaseline)
+	if (SessionState == ESessionState::Baseline)
 	{
 		SaveMetrics(ScoreProcessor->GetMetrics());
 		UE_LOG(LogTemp, Log, TEXT("Baseline saved for %s"), *CurrentTesterName);
@@ -80,9 +85,7 @@ void USessionManager::Reset()
 
 void USessionManager::SaveMetrics(const FCombatMetrics& Metrics) const
 {
-    if (!bInitialized) return;
-
-	if (bBaselinePhase)
+	if (SessionState == ESessionState::Baseline)
 	{
 		FMetricsSerializer::WriteMetricsToFile(SessionPath / TEXT("BaselineMetrics.json"), Metrics);
 	} 
@@ -112,7 +115,7 @@ bool USessionManager::LoadBaseline(const FString& PlayerName, FCombatMetrics& Ou
 	SessionFolders.Sort();
 	FString MostRecentSession = SessionsDir / SessionFolders.Last();
 	FString BaselinePath = MostRecentSession / TEXT("BaselineMetrics.json");
-	SessionPath = BaselinePath;
+	SessionPath = MostRecentSession;
 
 	return FMetricsSerializer::ReadLastMetricsSnapshot(BaselinePath, OutMetrics);
 }
@@ -129,14 +132,4 @@ FString USessionManager::BuildSessionPath(const FString& PlayerName)
     FString FolderName = FString::Printf(TEXT("%s_%s"), *SafeName, *Timestamp);
 
     return FPaths::ProjectSavedDir() / TEXT("Sessions") / FolderName;
-}
-
-bool USessionManager::WriteJsonToFile(const FString& FilePath, const FString& JsonString)
-{
-    if (!FFileHelper::SaveStringToFile(JsonString, *FilePath))
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to write metrics to %s"), *FilePath);
-        return false;
-    }
-    return true;
 }

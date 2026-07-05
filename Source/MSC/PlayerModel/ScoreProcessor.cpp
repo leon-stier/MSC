@@ -109,7 +109,6 @@ void UScoreProcessor::ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Out
 	auto Baseline = BaselineMetrics.InputProficiency.Find(AbilityTag);
 	float BaselineValue = (Baseline == nullptr || Baseline->IsEmpty()) ? 0.f : Baseline->Last().Value;
 
-	UE_LOG(LogTemp, Warning, TEXT("Checking thresholds. CurrentProficiency: %s. BaselineValue: %s"), *FString::SanitizeFloat(CurrentProficiency), *FString::SanitizeFloat(BaselineValue));
 	if (CurrentProficiency - BaselineValue < ForgottenInputDriftThreshold)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Forgotten input: %s"), *AbilityTag.ToString());

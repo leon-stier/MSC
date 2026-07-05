@@ -75,7 +75,7 @@ public:
 	void StopSession();
 	
 	UFUNCTION(BlueprintCallable)
-	bool IsBaselinePhase() const { return SessionManager->IsBaselinePhase(); }
+	bool IsBaselinePhase() const { return SessionManager->GetSessionState() == ESessionState::Baseline; }
 	
 	void StartAutoSave();
 	
