@@ -70,28 +70,28 @@ private:
 	UPROPERTY()
 	TObjectPtr<USessionTimeProvider> TimeProvider;
 	
-	float Now() const 
+	double Now() const 
 	{ 
 		return TimeProvider ? TimeProvider->GetSessionTime() : 0.f; 
 	}
 	
-	float GetInitTime() const
+	double GetInitTime() const
 	{
 		return TimeProvider ? TimeProvider->GetInitTime() : 0.f;
 	}
 	
 	template<typename T>
-	void IncrementAppend(TArray<TPair<float, T>>& Array) const
+	void IncrementAppend(TArray<TPair<double, T>>& Array) const
 	{
 		T NewCount = Array.IsEmpty() ? 1 : Array.Last().Value + 1;
-		Array.Add(TPair<float, T>(Now(), NewCount));
+		Array.Add(TPair<double, T>(Now(), NewCount));
 	}
 
 	// Helpers to append timestamped values
 	template<typename T>
-	void Append(TArray<TPair<float, T>>& Array, T Value) const
+	void Append(TArray<TPair<double, T>>& Array, T Value) const
 	{
-		Array.Add(TPair<float, T>(Now(), Value));
+		Array.Add(TPair<double, T>(Now(), Value));
 	}
 	
 	

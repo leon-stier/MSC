@@ -100,7 +100,7 @@ void UScoreProcessor::ApplyOpportunityOutcome(FGameplayTag AbilityTag, float Out
 		return;
 	}
 
-	TArray<TPair<float, float>>& ProficiencyArray = Metrics.InputProficiency.FindOrAdd(AbilityTag, {{GetInitTime(), 0.5f}});
+	TArray<TPair<double, float>>& ProficiencyArray = Metrics.InputProficiency.FindOrAdd(AbilityTag, {{GetInitTime(), 0.5f}});
 	float CurrentProficiency = ProficiencyArray.Last().Value;
 	CurrentProficiency = OpportunityAlpha * CurrentProficiency + (1.f - OpportunityAlpha) * Outcome;
 	

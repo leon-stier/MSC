@@ -101,40 +101,40 @@ struct FCombatMetrics
 	GENERATED_BODY()
 
     // Global frustration score [0,1], higher means more frustrated
-    TArray<TPair<float, float>> FrustrationScore;
+    TArray<TPair<double, float>> FrustrationScore;
 
     // Per-input EWMA proficiency [0,1]
-    TMap<FGameplayTag, TArray<TPair<float, float>>> InputProficiency;
+    TMap<FGameplayTag, TArray<TPair<double, float>>> InputProficiency;
 	
 
     // Raw counters
-    TArray<TPair<float, int32>> Deaths;
-    TArray<TPair<float, int32>> DamageTakenCount;
-    TArray<TPair<float, int32>> SuccessfulCombos;
-    TArray<TPair<float, int32>> SuccessfulHits;
-    TArray<TPair<float, int32>> SuccessfulParries;
-    TArray<TPair<float, int32>> SuccessfulBlocks;
-    TArray<TPair<float, int32>> SuccessfulDodges;
-    TArray<TPair<float, int32>> AbilitiesMissed;
-    TArray<TPair<float, int32>> UnassignedInputs;
+    TArray<TPair<double, int32>> Deaths;
+    TArray<TPair<double, int32>> DamageTakenCount;
+    TArray<TPair<double, int32>> SuccessfulCombos;
+    TArray<TPair<double, int32>> SuccessfulHits;
+    TArray<TPair<double, int32>> SuccessfulParries;
+    TArray<TPair<double, int32>> SuccessfulBlocks;
+    TArray<TPair<double, int32>> SuccessfulDodges;
+    TArray<TPair<double, int32>> AbilitiesMissed;
+    TArray<TPair<double, int32>> UnassignedInputs;
 
-    TArray<TPair<float, int32>> TotalOpportunities;
-    TArray<TPair<float, int32>> ActedOpportunities;
+    TArray<TPair<double, int32>> TotalOpportunities;
+    TArray<TPair<double, int32>> ActedOpportunities;
 
-    TMap<FGameplayTag, TArray<TPair<float, int32>>> AbilityActivations;
-    TMap<FGameplayTag, TArray<TPair<float, int32>>> AbilityMisses;
+    TMap<FGameplayTag, TArray<TPair<double, int32>>> AbilityActivations;
+    TMap<FGameplayTag, TArray<TPair<double, int32>>> AbilityMisses;
 	
 	bool bRecordingBaseline = false;
 	bool bBaselineEstablished = false;
 	
 private:
-	static void SeedFloat(TArray<TPair<float, float>>& Array, float InitialValue)
+	static void SeedFloat(TArray<TPair<double, float>>& Array, float InitialValue)
 	{
-		Array.Add(TPair<float, float>(0.f, InitialValue));
+		Array.Add(TPair<double, float>(0.f, InitialValue));
 	}
 
-	static void SeedInt(TArray<TPair<float, int32>>& Array, int32 InitialValue)
+	static void SeedInt(TArray<TPair<double, int32>>& Array, int32 InitialValue)
 	{
-		Array.Add(TPair<float, int32>(0.f, InitialValue));
+		Array.Add(TPair<double, int32>(0.f, InitialValue));
 	}
 };

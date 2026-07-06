@@ -8,7 +8,7 @@ TSharedPtr<FJsonObject> FMetricsSerializer::MetricsToJson(const FCombatMetrics& 
 	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
 
 	// Helper lambda to serialize a timestamped float array
-	auto SerializeFloatHistory = [](const TArray<TPair<float, float>>& History)
+	auto SerializeFloatHistory = [](const TArray<TPair<double, float>>& History)
 		-> TArray<TSharedPtr<FJsonValue>>
 	{
 		TArray<TSharedPtr<FJsonValue>> Array;
@@ -23,7 +23,7 @@ TSharedPtr<FJsonObject> FMetricsSerializer::MetricsToJson(const FCombatMetrics& 
 	};
 
 	// Helper lambda to serialize a timestamped int array
-	auto SerializeIntHistory = [](const TArray<TPair<float, int32>>& History)
+	auto SerializeIntHistory = [](const TArray<TPair<double, int32>>& History)
 		-> TArray<TSharedPtr<FJsonValue>>
 	{
 		TArray<TSharedPtr<FJsonValue>> Array;
@@ -53,7 +53,7 @@ TSharedPtr<FJsonObject> FMetricsSerializer::MetricsToJson(const FCombatMetrics& 
 
 	// Per-ability maps
 	auto SerializeMapOfIntHistories = [&SerializeIntHistory](
-		const TMap<FGameplayTag, TArray<TPair<float, int32>>>& Map)
+		const TMap<FGameplayTag, TArray<TPair<double, int32>>>& Map)
 		-> TSharedPtr<FJsonObject>
 	{
 		TSharedPtr<FJsonObject> Obj = MakeShared<FJsonObject>();
@@ -65,7 +65,7 @@ TSharedPtr<FJsonObject> FMetricsSerializer::MetricsToJson(const FCombatMetrics& 
 	};
 
 	auto SerializeMapOfFloatHistories = [&SerializeFloatHistory](
-		const TMap<FGameplayTag, TArray<TPair<float, float>>>& Map)
+		const TMap<FGameplayTag, TArray<TPair<double, float>>>& Map)
 		-> TSharedPtr<FJsonObject>
 	{
 		TSharedPtr<FJsonObject> Obj = MakeShared<FJsonObject>();
@@ -125,7 +125,7 @@ bool FMetricsSerializer::ReadLastMetricsSnapshot(const FString& FilePath, FComba
     // Read per-ability maps
     auto ReadLastMapOfFloats = [&Root](
         const FString& FieldName,
-        TMap<FGameplayTag, TArray<TPair<float, float>>>& OutMap)
+        TMap<FGameplayTag, TArray<TPair<double, float>>>& OutMap)
     {
         const TSharedPtr<FJsonObject>* MapObj;
         if (!Root->TryGetObjectField(FieldName, MapObj)) return;
@@ -142,7 +142,7 @@ bool FMetricsSerializer::ReadLastMetricsSnapshot(const FString& FilePath, FComba
             if (Array->Last()->TryGetObject(LastEntry))
             {
                 float LastValue = static_cast<float>((*LastEntry)->GetNumberField("v"));
-                OutMap.FindOrAdd(Tag).Add(TPair<float, float>(0.f, LastValue));
+                OutMap.FindOrAdd(Tag).Add(TPair<double, float>(0, LastValue));
             }
         }
     };
