@@ -53,6 +53,7 @@ void UCombatEventSubsystem::DisableHint()
 
 void UCombatEventSubsystem::DisableBackoff()
 {
+	ScoreProcessor->RecheckProficiencyThresholds();
 	bHintBackingOff = false;
 	GetWorld()->GetTimerManager().ClearTimer(HintBackoffTimer);
 }

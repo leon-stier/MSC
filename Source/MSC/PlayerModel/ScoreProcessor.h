@@ -32,6 +32,8 @@ public:
 		BaselineMetrics = InBaselineMetrics;
 	}
 	
+	void RecheckProficiencyThresholds();
+	
     virtual void Tick(float DeltaTime) override;
     virtual bool IsTickable() const override { return true; }
     virtual TStatId GetStatId() const override 

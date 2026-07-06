@@ -185,6 +185,16 @@ const FCombatMetrics& UScoreProcessor::GetBaselineMetrics() const
 	return BaselineMetrics;
 }
 
+void UScoreProcessor::RecheckProficiencyThresholds()
+{
+	ForgottenInputs.RemoveAll([this](const FGameplayTag& Input)
+	{
+		const auto Baseline = BaselineMetrics.InputProficiency.Find(Input);
+		const float BaselineValue = (Baseline == nullptr || Baseline->IsEmpty()) ? 0.f : Baseline->Last().Value;
+		return Metrics.InputProficiency.Find(Input)->Last().Value - BaselineValue >= ForgottenInputDriftThreshold;
+	});
+}
+
 void UScoreProcessor::Tick(float DeltaTime)
 {
 	if (InactivitySignal.bActive)
