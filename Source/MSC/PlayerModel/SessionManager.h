@@ -53,6 +53,8 @@ public:
 	void SaveMetrics(const FCombatMetrics& Metrics) const;
 
 	bool LoadBaseline(const FString& PlayerName, FCombatMetrics& OutMetrics);
+
+	static bool HasCompletedSession(const FString& PlayerName);
 	
 	ESessionState GetSessionState() const { return SessionState; }
 

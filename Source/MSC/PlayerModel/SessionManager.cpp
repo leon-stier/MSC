@@ -26,14 +26,11 @@ void USessionManager::StartSession(const FString& PlayerName)
 	// Check if baseline exists. If it does, go to Hints phase
 	
 	FCombatMetrics BaselineMetrics;
-	if (LoadBaseline(PlayerName, BaselineMetrics))
+	const bool bHasBaseline = LoadBaseline(PlayerName, BaselineMetrics);
+	const bool bHintsCompleted = bHasBaseline && HasCompletedSession(PlayerName);
+	
+	if (!bHasBaseline || bHintsCompleted)
 	{
-		ScoreProcessor->SetBaselineMetrics(BaselineMetrics);
-		SessionState = ESessionState::Hints;
-		OnSessionStateChanged.Broadcast(SessionState);
-		UE_LOG(LogTemp, Log, TEXT("Loaded previous baseline for %s - Starting Hints Phase"), *PlayerName);
-	} else
-	{	
 		SessionPath = BuildSessionPath(PlayerName);
 		
 		// Create the session directory
@@ -44,7 +41,21 @@ void USessionManager::StartSession(const FString& PlayerName)
 		}
 		SessionState = ESessionState::Baseline;
 		OnSessionStateChanged.Broadcast(SessionState);
-		UE_LOG(LogTemp, Log, TEXT("No baseline exists for %s - Starting Baseline Phase"), *PlayerName);
+		
+		if (!bHasBaseline)
+		{
+			UE_LOG(LogTemp, Log, TEXT("No baseline exists for %s - Starting Baseline Phase"), *PlayerName);
+		} else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Hints session already completed for %s - Starting new Baseline Session"), *PlayerName);
+		}
+	} else
+	{	
+		ScoreProcessor->SetBaselineMetrics(BaselineMetrics);
+		SessionState = ESessionState::Hints;
+		OnSessionStateChanged.Broadcast(SessionState);
+		UE_LOG(LogTemp, Log, TEXT("Loaded previous baseline for %s - Starting Hints Phase"), *PlayerName);
+	
 	}
 	ScoreProcessor->bIsFrozen = false;
 	
@@ -118,6 +129,27 @@ bool USessionManager::LoadBaseline(const FString& PlayerName, FCombatMetrics& Ou
 	SessionPath = MostRecentSession;
 
 	return FMetricsSerializer::ReadLastMetricsSnapshot(BaselinePath, OutMetrics);
+}
+
+bool USessionManager::HasCompletedSession(const FString& PlayerName)
+{
+	// Find the most recent session folder for this player
+	FString SafeName = PlayerName.Replace(TEXT(" "), TEXT("_"));
+	FString SessionsDir = FPaths::ProjectSavedDir() / TEXT("Sessions");
+
+	TArray<FString> SessionFolders;
+	IFileManager::Get().FindFiles(SessionFolders, *(SessionsDir / SafeName + TEXT("_*")), false, true);
+
+	if (SessionFolders.IsEmpty())
+	{
+		UE_LOG(LogTemp, Log, TEXT("No previous sessions found for %s while looking for Metrics.json"), *PlayerName);
+		return false;
+	}
+
+	SessionFolders.Sort();
+	FString MostRecentSession = SessionsDir / SessionFolders.Last();
+	FString MetricsPath = MostRecentSession / TEXT("Metrics.json");
+	return FPaths::FileExists(MetricsPath);
 }
 
 FString USessionManager::BuildSessionPath(const FString& PlayerName)
