@@ -75,3 +75,5 @@ DerivedDataCache/*
 
 .idea/
 AGENTS.md
+
+Builds/
