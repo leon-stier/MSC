@@ -77,6 +77,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsBaselinePhase() const { return SessionManager->GetSessionState() == ESessionState::Baseline; }
 	
+	UFUNCTION(BlueprintCallable)
+	void SetController(FString Type);
+	
+	UFUNCTION(BlueprintCallable)
+	FString GetControllerType();
+	
 	void StartAutoSave();
 	
 	void StopAutoSave();
@@ -114,6 +120,8 @@ private:
 	USessionManager* SessionManager;
 
 	FTimerHandle AutoSaveTimer;
+	
+	FString ControllerType = "Xbox Controller";
 
 	void OnAutosaveTimer() const;
 	

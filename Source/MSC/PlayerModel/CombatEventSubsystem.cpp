@@ -187,6 +187,16 @@ void UCombatEventSubsystem::StopSession()
 	SessionManager->EndAndResetSession();
 }
 
+void UCombatEventSubsystem::SetController(FString Type)
+{
+	ControllerType = Type;
+}
+
+FString UCombatEventSubsystem::GetControllerType()
+{
+	return ControllerType;
+}
+
 void UCombatEventSubsystem::StartAutoSave()
 {
 	// Start autosave timer
