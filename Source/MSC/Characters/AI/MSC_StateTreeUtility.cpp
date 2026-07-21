@@ -194,47 +194,6 @@ void FStateTreeMaintainEngageDistanceTask::ExitState(FStateTreeExecutionContext&
 	InstanceData.CachedMoveSpeed = 0.0f;
 }
 
-EStateTreeRunStatus FStateTreeComboAttackTask::EnterState(FStateTreeExecutionContext& Context,
-                                                          const FStateTreeTransitionResult& Transition) const
-{
-	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
-	AMSC_CharacterEnemy* Enemy = InstanceData.Character.Get();
-	if (!Enemy) return EStateTreeRunStatus::Failed;
-
-
-	bool Succeeded = false;
-
-	if (Enemy->PunchAbility && Enemy->MSC_AbilitySystemComponent)
-	{
-		Succeeded = Enemy->MSC_AbilitySystemComponent->TryActivateAbilityByClass(Enemy->PunchAbility);
-	}
-	if (!Succeeded)
-	{
-		return EStateTreeRunStatus::Failed;
-	}
-
-	Enemy->OnAttackCompletedNative.BindLambda(
-		[WeakContext = Context.MakeWeakExecutionContext()]()
-		{
-			WeakContext.FinishTask(EStateTreeFinishTaskType::Succeeded);
-		}
-	);
-
-	return EStateTreeRunStatus::Running;
-}
-
-void FStateTreeComboAttackTask::ExitState(FStateTreeExecutionContext& Context,
-                                          const FStateTreeTransitionResult& Transition) const
-{
-	FStateTreeTaskCommonBase::ExitState(Context, Transition);
-}
-
-FText FStateTreeComboAttackTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
-                                                const IStateTreeBindingLookup& BindingLookup,
-                                                EStateTreeNodeFormatting Formatting) const
-{
-	return FStateTreeTaskCommonBase::GetDescription(ID, InstanceDataView, BindingLookup, Formatting);
-}
 
 EStateTreeRunStatus FStateTreeRetreatToEnGardeTask::EnterState(FStateTreeExecutionContext& Context,
                                                                const FStateTreeTransitionResult& Transition) const
@@ -338,13 +297,6 @@ EStateTreeRunStatus FStateTreeGetPlayerInfoTask::Tick(FStateTreeExecutionContext
 	return EStateTreeRunStatus::Running;
 }
 
-FText FStateTreeGetPlayerInfoTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
-                                                  const IStateTreeBindingLookup& BindingLookup,
-                                                  EStateTreeNodeFormatting Formatting) const
-{
-	return FText::FromString("<b>Get Player Info</b>");
-}
-
 EStateTreeRunStatus FStateTreeFaceActorTask::EnterState(FStateTreeExecutionContext& Context,
                                                         const FStateTreeTransitionResult& Transition) const
 {
@@ -370,16 +322,6 @@ void FStateTreeFaceActorTask::ExitState(FStateTreeExecutionContext& Context,
 		InstanceData.Controller->ClearFocus(EAIFocusPriority::Gameplay);
 	}
 }
-
-#if WITH_EDITOR
-FText FStateTreeFaceActorTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
-                                              const IStateTreeBindingLookup& BindingLookup,
-                                              EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/)
-const
-{
-	return FText::FromString("<b>Face Towards Actor</b>");
-}
-#endif // WITH_EDITOR
 
 bool FStateTreeIsPlayerAttackingCondition::TestCondition(FStateTreeExecutionContext& Context) const
 {
