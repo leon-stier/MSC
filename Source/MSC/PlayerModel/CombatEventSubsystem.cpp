@@ -187,6 +187,11 @@ void UCombatEventSubsystem::StopSession()
 	SessionManager->EndAndResetSession();
 }
 
+void UCombatEventSubsystem::GoToBaseline()
+{
+	SessionManager->GoToBaseline();
+}
+
 void UCombatEventSubsystem::SetController(FString Type)
 {
 	ControllerType = Type;

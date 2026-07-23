@@ -46,7 +46,7 @@ void ARespawnManager::OnRespawnTimerComplete()
 
 void ARespawnManager::OnSessionStateChanged(const ESessionState& NewState)
 {
-	if (NewState == ESessionState::Idle)
+	if (NewState == ESessionState::Idle || NewState == ESessionState::Baseline)
 	{
 		ResetPlayer();
 	}

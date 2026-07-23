@@ -163,8 +163,13 @@ void AMSC_EnemySpawner::ResetAll()
 
 void AMSC_EnemySpawner::OnSessionChanged(const ESessionState& NewState)
 {
-	if (NewState == ESessionState::Baseline || NewState == ESessionState::Hints)
+	if (NewState == ESessionState::Learning || NewState == ESessionState::Hints)
 	{
+		Start();
+	}
+	if (NewState == ESessionState::Baseline)
+	{
+		ResetAll();
 		Start();
 	}
 	if (NewState == ESessionState::Idle)

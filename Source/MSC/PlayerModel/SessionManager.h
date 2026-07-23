@@ -9,9 +9,10 @@ class UScoreProcessor;
 UENUM(BlueprintType)
 enum class ESessionState : uint8
 {
-	Idle,               // No session active
-	Baseline,  // Tester playing, baseline being recorded
-	Hints,     // Second session, hints engaged
+	Idle,		// No session active
+	Learning,	// Tester is learning controls
+	Baseline,	// Tester playing, baseline being recorded
+	Hints,		// Second session, hints engaged
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSessionStateChanged, const ESessionState&, NewState);
@@ -45,6 +46,8 @@ public:
 	void Initialize(UScoreProcessor* InScoreProcessor);
 	
 	void StartSession(const FString& PlayerName);
+	
+	void GoToBaseline();
 
 	void EndAndResetSession();
 	

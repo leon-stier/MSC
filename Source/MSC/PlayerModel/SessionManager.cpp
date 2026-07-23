@@ -39,15 +39,15 @@ void USessionManager::StartSession(const FString& PlayerName)
 		{
 			PlatformFile.CreateDirectoryTree(*SessionPath);
 		}
-		SessionState = ESessionState::Baseline;
+		SessionState = ESessionState::Learning;
 		OnSessionStateChanged.Broadcast(SessionState);
 		
 		if (!bHasBaseline)
 		{
-			UE_LOG(LogTemp, Log, TEXT("No baseline exists for %s - Starting Baseline Phase"), *PlayerName);
+			UE_LOG(LogTemp, Log, TEXT("No baseline exists for %s - Starting Learning Phase"), *PlayerName);
 		} else
 		{
-			UE_LOG(LogTemp, Log, TEXT("Hints session already completed for %s - Starting new Baseline Session"), *PlayerName);
+			UE_LOG(LogTemp, Log, TEXT("Hints session already completed for %s - Starting new Learning Phase"), *PlayerName);
 		}
 	} else
 	{	
@@ -55,13 +55,26 @@ void USessionManager::StartSession(const FString& PlayerName)
 		SessionState = ESessionState::Hints;
 		OnSessionStateChanged.Broadcast(SessionState);
 		UE_LOG(LogTemp, Log, TEXT("Loaded previous baseline for %s - Starting Hints Phase"), *PlayerName);
-	
+		ScoreProcessor->bIsFrozen = false;
+		UCombatEventSubsystem::Get(GetWorld())->StartAutoSave();
 	}
-	ScoreProcessor->bIsFrozen = false;
-	
-	UCombatEventSubsystem::Get(GetWorld())->StartAutoSave();
 	
     UE_LOG(LogTemp, Log, TEXT("Session initialized at: %s"), *SessionPath);
+}
+
+void USessionManager::GoToBaseline()
+{
+	if (SessionState != ESessionState::Learning)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GoToBaseline called while not in Learning phase"));
+		return;
+	}
+	ScoreProcessor->Reset();
+	ScoreProcessor->bIsFrozen = false;
+	UCombatEventSubsystem::Get(GetWorld())->StartAutoSave();
+	UE_LOG(LogTemp, Log, TEXT("Transitioned to Baseline phase for %s"), *CurrentTesterName);
+	SessionState = ESessionState::Baseline;
+	OnSessionStateChanged.Broadcast(SessionState);
 }
 
 void USessionManager::EndAndResetSession()

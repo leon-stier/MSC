@@ -75,6 +75,9 @@ public:
 	void StopSession();
 	
 	UFUNCTION(BlueprintCallable)
+	void GoToBaseline();
+	
+	UFUNCTION(BlueprintCallable)
 	bool IsBaselinePhase() const { return SessionManager->GetSessionState() == ESessionState::Baseline; }
 	
 	UFUNCTION(BlueprintCallable)
